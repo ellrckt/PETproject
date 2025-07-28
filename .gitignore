@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+# Ignore VS Code configuration
+.vscode/
+
+# Node.js
+node_modules/
+package-lock.json
+
+.env
+
 # Distribution / packaging
 .Python
 build/
