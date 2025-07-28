@@ -209,8 +209,8 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+.backend/testApp/gmail_token.json
+.backend/testApp/client_secret.json
+backend/testApp/gmail_token.json
+backend/testApp/client_secret.json
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
