@@ -214,3 +214,11 @@ cython_debug/
 backend/testApp/gmail_token.json
 backend/testApp/client_secret.json
 
+poetry.lock
+pyproject.toml
+.poetry.lock
+.pyproject.toml
+
+
+.backend/testApp/certs/
+backend/testApp/certs/
