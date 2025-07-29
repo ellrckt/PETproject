@@ -44,19 +44,6 @@ function LoginForm() {
                loginUser(email, password);
             }}
          >
-            Получить код
-         </Button>
-
-         <Input
-            placeholder="Введите код"
-         />
-
-         <Button
-            onClick={(e) => {
-               e.preventDefault();
-               loginUser(email, password);
-            }}
-         >
             Войти
          </Button>
       </form>
