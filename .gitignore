@@ -219,6 +219,6 @@ pyproject.toml
 .poetry.lock
 .pyproject.toml
 
-certs/
-.certs/
 
+.backend/testApp/certs/
+backend/testApp/certs/
