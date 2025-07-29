@@ -1,8 +1,8 @@
-"""Добавить новое поле в модель
+"""empty message
 
-Revision ID: 5f0401acc0a9
+Revision ID: 5fbfb9317cdd
 Revises:
-Create Date: 2025-04-15 21:28:56.782818
+Create Date: 2025-07-30 01:02:29.445439
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "5f0401acc0a9"
+revision: str = "5fbfb9317cdd"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,8 @@ def upgrade() -> None:
         sa.Column("username", sa.String(length=30), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("email", sa.String(length=120), nullable=False),
-        sa.Column("password", sa.String(), nullable=False),
+        sa.Column("password", sa.String(length=128), nullable=False),
+        sa.Column("email_is_confirmed", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
