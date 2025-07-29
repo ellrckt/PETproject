@@ -94,7 +94,7 @@ async def login_user(
 #     return result
 
 
-@router.post("/refresh")
+@router.get("/refresh")
 async def refresh_token(
     response: Response,
     request: Request,
@@ -102,9 +102,9 @@ async def refresh_token(
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
     refresh_token = request.cookies.get("refresh_token")
-    access_token = request.cookies.get("access_token")
+    # access_token = request.cookies.get("access_token")
     new_access_token = await user_service.refresh_token(
-        session, access_token, refresh_token
+        session,  refresh_token
     )
     return TokenInfo(
         access_token=new_access_token,

@@ -156,9 +156,9 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             # return TokenInfo(access_token=access_token, refresh_token=refresh_token)
 
     async def refresh_token(
-        self, access_token: str, session: AsyncSession, refresh_token: str
+        self, session: AsyncSession, refresh_token: str
     ):
-
+        print(refresh_token)
         access_payload = decode_jwt(refresh_token)
         async with session as session:
             stmt = select(self.model).where(self.model.email == access_payload["email"])

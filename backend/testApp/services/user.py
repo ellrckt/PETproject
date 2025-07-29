@@ -52,10 +52,10 @@ class UserService:
         return result
 
     async def refresh_token(
-        self, session: AsyncSession, access_token: str, refresh_token: str
+        self, session: AsyncSession, refresh_token: str
     ):
         result = await self.user_repo.refresh_token(
-            access_token, session, refresh_token
+             session, refresh_token
         )
         return result
 
