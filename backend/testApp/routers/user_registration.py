@@ -6,7 +6,8 @@ from services.user import UserService
 from testapp.dependencies import user_service
 from schemas.user.user import UserResponse
 from typing import Annotated
-
+import random
+import string
 router = APIRouter(tags=["registration"], prefix="/registration")
 
 
