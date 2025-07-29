@@ -1,6 +1,9 @@
-from utils.repository import SQLAlchemyRepository
+from utils.user_repository import SQLAlchemyUserRepository,SQLAlchemyUserCRUDRepository
 from models.user import User
 
 
-class UserRepository(SQLAlchemyRepository):
+class UserRepository(SQLAlchemyUserRepository):
+    model = User
+
+class UserCRUDRepository(SQLAlchemyUserCRUDRepository):
     model = User

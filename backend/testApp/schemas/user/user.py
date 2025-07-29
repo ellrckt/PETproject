@@ -32,3 +32,12 @@ class UserUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
     password: str | None = None
+
+
+class UserEmailConffirmation(BaseModel):
+    
+    confirmation_code: str
+    typed_code: str
+
+# class GCode(BaseModel):
+#     code: str
