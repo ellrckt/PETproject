@@ -110,6 +110,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def register_user(self, user_data: dict, session: AsyncSession):
 
         async with session.begin():
+
             stmt = select(self.model).where(self.model.email == user_data["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
@@ -118,12 +119,17 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                     status_code=400, detail="User with this email is already exists."
                 )
             else:
-                user_data["password"] = hash_password(user_data["password"])
-                del user_data["repit_password"]
-                stmt = insert(self.model).values(**user_data).returning(self.model)
-                result = await session.execute(stmt)
-                await session.commit()
-                new_user = result.scalar_one_or_none()
+                if user_data['password'] == user_data['repit_password']:
+                    user_data["password"] = hash_password(user_data["password"])
+                    del user_data["repit_password"]
+                    stmt = insert(self.model).values(**user_data).returning(self.model)
+                    result = await session.execute(stmt)
+                    await session.commit()
+                    new_user = result.scalar_one_or_none()
+                else:
+                    raise HTTPException(
+                        status_code = 400,detail = "passwords aren't the same"
+                    )
         return new_user
 
     async def login_user(self, data_dict: dict, session: AsyncSession):
