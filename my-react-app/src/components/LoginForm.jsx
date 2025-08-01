@@ -8,16 +8,17 @@ import Input from "./UI/Input";
 function LoginForm() {
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
+   const [error, setError] = useState(null);
 
    const nav = useNavigate();
 
    async function loginUser(email, password) {
-      await jwtService.post("/login", {
+      const res = await jwtService.post("/login", {
          email: email,
          password: password,
       });
 
-      nav("/home");
+      typeof res === 'string' ? setError(res) : nav("/home");
    }
 
    return (
@@ -38,9 +39,14 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
          />
 
+         {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>
+         )}
+
          <Button
             onClick={(e) => {
                e.preventDefault();
+               setError(null);
                loginUser(email, password);
             }}
          >

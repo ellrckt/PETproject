@@ -16,36 +16,30 @@ class RequestService {
 
    async request(method, url, data=null) {
       try {
-         await this.#requestHeader({
+         const res = await this.#requestHeader({
             method: method,
             url: url,
             data: data
          });
+         return res;
       } catch (error) {
-         console.log('error!!!');
+         if (error?.response?.data?.detail && typeof error.response.data.detail === 'string') {
+            return error.response.data.detail;
+         } else {
+            return 'Произошла ошибка';
+         }
       }
    }
 
-   get(url) {
-      this.request('get', url);
-   }
+   get = async (url) => await this.request('get', url);
 
-   post(url, data) {
-      this.request('post', url, data);
-   }
+   post = async (url, data) => await this.request('post', url, data);
 
-   put(url, data) {
-      return this.request('put', url, data);
-   }
+   put = async (url, data) => await this.request('put', url, data);
 
-   delete(url) {
-      return this.request('delete', url);
-   }
+   delete = async (url) => await this.request('delete', url);
 
-   patch(url, data) {
-      return this.request('patch', url, data);
-   }
-
+   patch = async (url, data) => await this.request('patch', url, data);
 }
 
 

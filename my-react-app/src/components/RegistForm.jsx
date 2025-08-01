@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import reqService from "../API/RequestService";
 import Button from "./UI/Button";
@@ -10,14 +10,19 @@ function RegistForm() {
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
    const [repeatPassword, setRepeatPassword] = useState("");
+   const [error, setError] = useState(null);
+
+   const nav = useNavigate();
 
    async function registUser(username, email, password, repeatPassword) {
-      await reqService.post("/registration", {
+      const res = await reqService.post("/registration", {
          username: username,
          email: email,
          password: password,
          repit_password: repeatPassword,
       });
+      
+      typeof res === 'string' ? setError(res) : nav("/home");
    }
 
    return (
@@ -50,10 +55,15 @@ function RegistForm() {
             onChange={(e) => setRepeatPassword(e.target.value)}
          />
 
+         {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>
+         )}
+
          <Button
             onClick={(e) => {
                e.preventDefault();
-               registUser(username, email, password, repeatPassword)
+               setError(null);
+               registUser(username, email, password, repeatPassword);
             }}
          >
             Регистрация

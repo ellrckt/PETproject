@@ -48,12 +48,13 @@ class JwtService {
                try {
                   const res = await this.get('/login/refresh');
                   this.setAccessToken(res.data.access_token);
-                  console.log('new token: ', res.data.access_token);
+                  //console.log('new token: ', res.data.access_token);
                   //вытаскиваем конфиг исходного запроса
                   const config = err.config;
                   //повторяем исходный запрос с новым токеном
                   return this.#authHeader.request(config);
                } catch (err) {
+                  //alert('Failed to refresh token')
                   console.error('Failed to refresh token:', err);
                }
             }
@@ -72,8 +73,12 @@ class JwtService {
             data: data
          });
          return res;
-      } catch (err) {
-         console.error('request error: ', err.message);
+      } catch (error) {
+         if (error?.response?.data?.detail && typeof error.response.data.detail === 'string') {
+            return error.response.data.detail;
+         } else {
+            return 'Произошла ошибка';
+         }
       }
    }
 
