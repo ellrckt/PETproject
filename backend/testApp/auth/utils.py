@@ -54,11 +54,11 @@ def decode_jwt(
         decoded_jwt = jwt.decode(
             token,
             public_key,
-            algorithms=[algorithm],
+            algorithms=[algorithm], 
         )
         return decoded_jwt
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
+        raise HTTPException(status_code=401, detail="Token has been expired")
     except jwt.InvalidTokenError as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
