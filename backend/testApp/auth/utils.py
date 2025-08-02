@@ -54,7 +54,7 @@ def decode_jwt(
         decoded_jwt = jwt.decode(
             token,
             public_key,
-            algorithms=[algorithm],
+            algorithms=[algorithm], 
         )
         return decoded_jwt
     except jwt.ExpiredSignatureError:
