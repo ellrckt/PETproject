@@ -44,7 +44,7 @@ class JwtService {
             return res;
          },
          async err => {
-            if (axios.isAxiosError(err) && err.response.status === 401) {
+            if (axios.isAxiosError(err) && err.response.status === 401 && err.response.data.detail === 'Token has been expired') {
                try {
                   const res = await this.get('/login/refresh');
                   this.setAccessToken(res.data.access_token);
