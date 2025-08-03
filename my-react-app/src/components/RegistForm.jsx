@@ -26,13 +26,13 @@ function RegistForm() {
    }
 
    return (
-      <form className="max-w-md mx-auto bg-white rounded-md shadow-lg p-8">
+      <form className="max-w-md mx-auto bg-white rounded-md shadow-lg shadow-stone-300 p-8">
          <h1 className="text-2xl font-bold text-gray-800 mb-8 text-left">
-            Регистрация
+            Create account
          </h1>
 
          <Input
-            placeholder="Имя"
+            placeholder="Name"
             value={username}
             onChange={(e) => setName(e.target.value)}
          />
@@ -44,13 +44,13 @@ function RegistForm() {
          />
 
          <Input
-            placeholder="Пароль"
+            placeholder="Password (at least 4 symbols)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
          />
 
          <Input
-            placeholder="Повторите пароль"
+            placeholder="Repeat password"
             value={repeatPassword}
             onChange={(e) => setRepeatPassword(e.target.value)}
          />
@@ -66,15 +66,15 @@ function RegistForm() {
                registUser(username, email, password, repeatPassword);
             }}
          >
-            Регистрация
+            Sign up
          </Button>
          <div className="text-center mt-4">
-            <span className="text-gray-600">Уже зарегистрированы? </span>
+            <span className="text-gray-600">Already have an account? </span>
             <Link
                to="/login"
-               className="text-purple-500 hover:text-purple-700 font-medium"
+               className="text-stone-500 hover:text-stone-700 font-medium"
             >
-               Войдите здесь
+               Sign in here
             </Link>
          </div>
       </form>

@@ -5,6 +5,8 @@ import jwtService from "../API/JwtService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
 
+import logo from '../assets/images/google-icon.svg'
+
 function LoginForm() {
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
@@ -22,9 +24,9 @@ function LoginForm() {
    }
 
    return (
-      <form className="max-w-md mx-auto bg-white rounded-md shadow-lg p-8">
+      <form className="max-w-md mx-auto bg-white rounded-md shadow-lg shadow-stone-300 p-8">
          <h1 className="text-2xl font-bold text-gray-800 mb-8 text-left">
-            Вход
+            Login
          </h1>
 
          <Input
@@ -34,7 +36,7 @@ function LoginForm() {
          />
 
          <Input
-            placeholder="Пароль"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
          />
@@ -50,8 +52,13 @@ function LoginForm() {
                loginUser(email, password);
             }}
          >
-            Войти
+            Log in
          </Button>
+
+         <button className="flex items-center justify-center w-full px-4 py-3 mt-6 text-gray-700 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-stone-50">
+            <img src={logo} alt="Google" className="w-5 h-5 mr-3" />
+            Login with Google
+         </button>
       </form>
    );
 }
