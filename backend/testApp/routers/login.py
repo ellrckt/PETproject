@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Form, Response, Request
+from fastapi import APIRouter, Depends, Form, Response, Request,Body
+from fastapi.responses import RedirectResponse
 from schemas.user.user import UserLogin
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.db import db_helper
@@ -11,6 +12,9 @@ from config import settings
 import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
+from auth.googleauth import generate_url
+import aiohttp
+
 
 router = APIRouter(tags=["login"], prefix="/login")
 
@@ -50,7 +54,31 @@ async def login_user(
         max_age=3600,
         path="/",
     )
+ 
+@router.get("/get_google_uri")
+def get_google_uri():
+    uri = generate_url()
+    # return RedirectResponse(url=uri,status_code = 302)
+    return uri
 
+
+@router.post("/get_google_token")
+async def get_google_token(
+    code: Annotated[str,Body(embded=True)]
+):    
+    google_api_url = "https://oauth2.googleapis.com/token"
+    async with aiohttp.ClientSession() as session, session.post(url=google_api_url,data=
+    {
+        "client_id": settings.auth_jwt.google_client_id,
+        "client_secret": settings.auth_jwt.google_client_secret,
+        "grant_type": "authorization_code",
+        "redirect_uri": "http://localhost:3000/home",
+        "code": code,
+    
+    },ssl = False) as response:
+        res = await response.json()
+    return res
+        
     # response.set_cookie(
     #     key="refresh_token",
     #     value=refresh_token,
