@@ -140,29 +140,33 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def login_user(self, data_dict: dict, session: AsyncSession):
 
         async with session as session:
+            
             stmt = select(self.model).where(self.model.email == data_dict["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             if user is None:
                 raise HTTPException(status_code=401, detail="Invalid email")
-            check_pass = validate_password(data_dict["password"], user.password)
-            if not check_pass:
-                raise HTTPException(status_code=401, detail="Invalid password.")
-            if not user.is_active:
-                raise HTTPException(status_code=403, detail="user inactive")
-            payload = {
-                "sub": user.username,
-                "email": user.email,
-                "token_type": ACCESS_TOKEN_TYPE,
-            }
-            access_token = encode_jwt(payload)
-            refresh_token = encode_jwt(
-                {
+            if data_dict["password"] >= 0:
+                check_pass = validate_password(data_dict["password"], user.password)
+                if not check_pass:
+                    raise HTTPException(status_code=401, detail="Invalid password.")
+                if not user.is_active:
+                    raise HTTPException(status_code=403, detail="user inactive")
+                payload = {
                     "sub": user.username,
                     "email": user.email,
-                    "token_type": REFRESH_TOKEN_TYPE,
+                    "token_type": ACCESS_TOKEN_TYPE,
                 }
-            )
+                access_token = encode_jwt(payload)
+                refresh_token = encode_jwt(
+                    {
+                        "sub": user.username,
+                        "email": user.email,
+                        "token_type": REFRESH_TOKEN_TYPE,
+                    }
+                )
+            else:  
+                raise HTTPException(status_code = 422,detail = "Password must be at least 4 characters long")
             return TokenInfo(access_token=access_token, refresh_token=refresh_token)
             # return TokenInfo(access_token=access_token, refresh_token=refresh_token)
 
