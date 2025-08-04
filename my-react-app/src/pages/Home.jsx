@@ -1,34 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 import jwtService from "../API/JwtService";
-import Button from "../components/UI/Button";
+import reqService from "../API/RequestService";
+
+//import Button from "../components/UI/Button";
 import NavBar from "../components/NavBar";
+import NotLoggedIn from "../components/NotLoggegIn"
 
 function Home() {
-   return (
-      <div>
-         <NavBar></NavBar>
-         <div className="flex space-x-4">
-            <Button
-               onClick={(e) => {
-                  e.preventDefault();
-               }}
-               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            >
-               Регистрация
-            </Button>
+   useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      async function getData() {
+         const res = await reqService.post('/login/get_google_token', code);
+         console.log('Результат: ', res);
+         return res;
+      }
+      if (code) {
+         //console.log(code);
+         getData();
+      } else {
+         console.log('there is no code in url');
+      }
+   }, []);
 
-            <Button
-               onClick={(e) => {
-                  e.preventDefault();
-               }}
-               className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-            >
-               Вход
-            </Button>
+
+   if (!jwtService.getAccessToken()) {
+      return (<NotLoggedIn></NotLoggedIn>);
+   } else {
+      return (
+         <div>
+            <NavBar></NavBar>
          </div>
-      </div>
-      
-   );
+      );
+   }
 }
 
 export default Home;

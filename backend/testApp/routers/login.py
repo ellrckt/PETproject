@@ -54,12 +54,12 @@ async def login_user(
         max_age=3600,
         path="/",
     )
+    return result
  
 @router.get("/get_google_uri")
 def get_google_uri():
     uri = generate_url()
-    # return RedirectResponse(url=uri,status_code = 302)
-    return uri
+    return RedirectResponse(url=uri,status_code = 302)
 
 
 @router.post("/get_google_token")

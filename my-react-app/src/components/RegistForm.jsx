@@ -47,12 +47,14 @@ function RegistForm() {
             placeholder="Password (at least 4 symbols)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            type='password'
          />
 
          <Input
             placeholder="Repeat password"
             value={repeatPassword}
             onChange={(e) => setRepeatPassword(e.target.value)}
+            type='password'
          />
 
          {error && (

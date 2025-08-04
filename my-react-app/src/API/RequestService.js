@@ -26,7 +26,7 @@ class RequestService {
          if (error?.response?.data?.detail && typeof error.response.data.detail === 'string') {
             return error.response.data.detail;
          } else {
-            return 'Произошла ошибка';
+            return 'An error has occured';
          }
       }
    }

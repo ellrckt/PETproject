@@ -146,7 +146,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             user = result.scalar_one_or_none()
             if user is None:
                 raise HTTPException(status_code=401, detail="Invalid email")
-            if data_dict["password"] >= 0:
+            if len(data_dict["password"]) >= 4:
                 check_pass = validate_password(data_dict["password"], user.password)
                 if not check_pass:
                     raise HTTPException(status_code=401, detail="Invalid password.")
