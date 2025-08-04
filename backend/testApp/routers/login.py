@@ -1,3 +1,4 @@
+from auth.state_storage import state_storage
 from fastapi import APIRouter, Depends, Form, Response, Request,Body
 from fastapi.responses import RedirectResponse
 from schemas.user.user import UserLogin
@@ -14,6 +15,7 @@ from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException
 from auth.googleauth import generate_url
 import aiohttp
+import jwt
 
 
 router = APIRouter(tags=["login"], prefix="/login")
@@ -44,16 +46,6 @@ async def login_user(
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     result = await user_service.login_user(schema, session)
-    refresh_token = result.refresh_token
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-        path="/",
-    )
     return result
  
 @router.get("/get_google_uri")
@@ -62,36 +54,42 @@ def get_google_uri():
     return RedirectResponse(url=uri,status_code = 302)
 
 
+
 @router.post("/get_google_token")
 async def get_google_token(
-    code: Annotated[str,Body(embded=True)]
-):    
-    google_api_url = "https://oauth2.googleapis.com/token"
-    async with aiohttp.ClientSession() as session, session.post(url=google_api_url,data=
-    {
-        "client_id": settings.auth_jwt.google_client_id,
-        "client_secret": settings.auth_jwt.google_client_secret,
-        "grant_type": "authorization_code",
-        "redirect_uri": "http://localhost:3000/home",
-        "code": code,
-    
-    },ssl = False) as response:
-        res = await response.json()
-    return res
-        
-    # response.set_cookie(
-    #     key="refresh_token",
-    #     value=refresh_token,
-    #     httponly=True,
-    #     secure=False,  # Уберите это для локальной разработки без HTTPS
-    #     samesite="Lax",
-    #     max_age=3600,
-    #     domain="localhost",  # Или ваш домен
-    #     path="/",  # Или путь к вашему API
-    # )
+    code: Annotated[str, Body()],
+    state: Annotated[str, Body()],
+):
+    if state not in state_storage:
+        raise HTTPException(detail="State is invalid",status_code = 405)
+    else:
+        print("Стейт корректный")
+    google_token_url = "https://oauth2.googleapis.com/token"
 
-    return result
-
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            url=google_token_url,
+            data={
+                "client_id": settings.auth_jwt.google_client_id,
+                "client_secret": settings.auth_jwt.google_client_secret,
+                "grant_type": "authorization_code",
+                "redirect_uri": "http://localhost:3000/home",
+                "code": code,
+            },
+            ssl=False,
+        ) as response:
+            res = await response.json()
+            # print(f"{res=}")
+            # id_token = res["id_token"]
+            # access_token = res["access_token"]
+            # user_data = jwt.decode(
+            #     id_token,
+            #     algorithms=["RS256"],
+            #     options={"verify_signature": False},
+            # )
+    return {
+        res
+    }
 
 # @router.post("", response_model=TokenInfo)
 # async def login_user(

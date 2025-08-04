@@ -9,6 +9,7 @@ from schemas.token.token import TokenInfo
 from datetime import datetime
 from models.user import User
 
+
 ACCESS_TOKEN_TYPE = "access_token"
 REFRESH_TOKEN_TYPE = "refresh_token"
 
@@ -137,7 +138,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                         )
         return new_user
 
-    async def login_user(self, data_dict: dict, session: AsyncSession):
+    async def login_user(self, data_dict: dict, session: AsyncSession)->TokenInfo:
 
         async with session as session:
             
@@ -158,16 +159,9 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                     "token_type": ACCESS_TOKEN_TYPE,
                 }
                 access_token = encode_jwt(payload)
-                refresh_token = encode_jwt(
-                    {
-                        "sub": user.username,
-                        "email": user.email,
-                        "token_type": REFRESH_TOKEN_TYPE,
-                    }
-                )
             else:  
                 raise HTTPException(status_code = 422,detail = "Password must be at least 4 characters long")
-            return TokenInfo(access_token=access_token, refresh_token=refresh_token)
+            return TokenInfo(access_token=access_token)
             # return TokenInfo(access_token=access_token, refresh_token=refresh_token)
 
     async def refresh_token(
