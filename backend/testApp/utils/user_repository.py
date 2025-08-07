@@ -203,31 +203,6 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 access_token = encode_jwt(payload_to_new_token)
             return access_token
     
-    async def confirm_email(
-        self,
-        session: AsyncSession,
-        code_data: dict,
-        data_dict: dict
-    ):
-        if code_data["confirmation_code"] == code_data["typed_code"]:
-
-            async with session:
-                stmt = select(self.model).where(self.model.email == data_dict["email"])
-                result = await session.execute(stmt)
-                user = result.scalar_one_or_none()
-
-                if user is None:
-                    raise HTTPException(status_code=401, detail="Invalid email")
-
-                if not user.is_active:
-                    raise HTTPException(status_code=403, detail="User inactive")
-
-                stmt_update = (
-                    update(self.model).where(self.model.email == data_dict["email"]).values(email_is_confirmed=True)
-                )
-                await session.execute(stmt_update)
-                await session.commit()
-            return user.email_is_confirmed
         
     async def get_tokens_with_google(self, email: str,session: AsyncSession):
         async with session as session:

@@ -12,10 +12,11 @@ from schemas.token.token import TokenInfo
 from config import settings
 import jwt
 from jwt.exceptions import InvalidTokenError
-from fastapi import HTTPException
+from fastapi import HTTPException,status
 from auth.googleauth import generate_url
 import aiohttp
 import jwt
+from auth.utils import decode_jwt
 
 
 router = APIRouter(tags=["login"], prefix="/login")
@@ -78,6 +79,8 @@ async def get_tokens_with_google(
 async def get_google_token(
     code: Annotated[str, Body()],
     state: Annotated[str, Body()],
+    user_service: Annotated[UserService,Depends(user_service)],
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
 ):
     if state not in state_storage:
         raise HTTPException(detail="State is invalid",status_code = 405)
@@ -98,44 +101,35 @@ async def get_google_token(
             ssl=False,
         ) as response:
             res = await response.json()
-            # print(f"{res=}")
-            # id_token = res["id_token"]
-            # access_token = res["access_token"]
-            # user_data = jwt.decode(
-            #     id_token,
-            #     algorithms=["RS256"],
-            #     options={"verify_signature": False},
-            # )
-    return res
+            id_token = res["id_token"]
+            user_data = jwt.decode(
+                id_token,
+                algorithms=["RS256"],
+                options={"verify_signature": False},
+            )
+        result = await user_service.get_tokens_with_google(user_data["email"],session)
+    return result
+
+@router.get("/check_refresh_token")
+async def check_refresh_token(request: Request):
+    refresh_token = request.cookies.get("refresh_token")
     
-
-# @router.post("", response_model=TokenInfo)
-# async def login_user(
-#     schema: UserLogin,
-#     user_service: Annotated[UserService, Depends(user_service)],
-#     response: Response,
-#     session: AsyncSession = Depends(db_helper.get_session),
-# ):
-#     result = await user_service.login_user(schema, session)
-
-#     # response.set_cookie(
-#     #     key="access_token",
-#     #     value=result.access_token,
-#     #     httponly=True,
-#     #     secure=True,
-#     #     samesite="Lax",
-#     #     max_age=3600,
-#     # )
-#     response.set_cookie(
-#         key="refresh_token",
-#         value=result.refresh_token,
-#         httponly=True,
-#         secure=True,
-#         samesite="Lax",
-#         max_age=3600,
-#     )
-
-#     return result
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token is missing"
+        )
+    
+    try:
+        payload = decode_jwt(refresh_token)
+        return True
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token verification failed: {str(e)}"
+        )
 
 
 @router.get("/refresh")
@@ -154,3 +148,4 @@ async def refresh_token(
         access_token=new_access_token,
         # refresh_token=request.cookies.get("refresh_token"),
     )
+

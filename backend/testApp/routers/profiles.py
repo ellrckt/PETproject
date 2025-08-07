@@ -1,35 +1,25 @@
-# from fastapi import APIRouter, UploadFile, File, HTTPException
-# import os
-# from schemas.profiles.profile import EditProfile, Profile
+from testapp.dependencies import user_service, user_crud_service
+from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserEmailConffirmation,UserLocation,UserCityCountry
+from services.user import UserService
+from typing import Annotated, List
+from fastapi import Depends, APIRouter, Request, Response
+from fastapi.security import HTTPBearer
+from db.db import db_helper
+from sqlalchemy.ext.asyncio import AsyncSession
+from routers.login import check_jwt
+from auth.utils import decode_jwt, encode_jwt
+from fastapi import Request
 
-# profiles = APIRouter(tags=["profiles"], prefix="/profile")
-
-# UPLOAD_DIR = "uploads"
-# os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-
-# @profiles.post("/edit_profile", response_model=Profile)
-# async def edit_profile(schema: EditProfile):
-#     profile_dict = schema.dict(exclude_unset=True)
-#     return Profile(
-#         profile_img=profile_dict["profile_img"],
-#         username=profile_dict["username"],
-#         email=profile_dict["email"],
-#     )
+router = APIRouter(tags=["profiles"], prefix="/profile")
 
 
-# @profiles.post("/uploadfile")
-# async def uploadfile(file_uploaded: UploadFile = File(...)):
-#     try:
-#         file_name = file_uploaded.filename
-#         file_path = os.path.join(UPLOAD_DIR, file_name)
+@router.get("/get_user_location")
+async def get_user_location(
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    user_service: Annotated[UserService,Depends(user_service)],
+    schema: UserLocation,
+    response: Response,
+    )->UserCityCountry:
 
-#         with open(file_path, "wb") as f:
-#             content = await file_uploaded.read()
-#             f.write(content)
-
-#         return {"filename": file_name, "message": "File uploaded successfully"}
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=500, detail=f"An error occurred while uploading the file: {e}"
-#         )
+    result = await user_service.get_user_location(schema,session,response)
+    return UserCityCountry(city = result.city, country = result.country)
