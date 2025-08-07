@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import jwtService from "../API/JwtService";
 import reqService from "../API/RequestService";
@@ -13,23 +14,43 @@ function HomePage() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       const state = params.get('state');
+
+      console.log('1:  ', code, '2:  ', state);  
+
+      async function checkRefreshToken() {
+         const res = await reqService.get('/login/check_refresh_token');
+         if (res.data === true) {
+            setRefrToken(true);
+         } else {
+            setRefrToken(false);
+         }
+      }
+
       async function getData() {
          const res = await reqService.post('/login/get_google_token', {code: code, state: state});
          console.log('Результат: ', res);
-         return res;
+
+         checkRefreshToken();
+         nav('/home');
       }
+
       if (code && state) {
          getData();
       } else {
-         console.log('there is no code in url');
+         checkRefreshToken();
       }
    }, []);
 
-   const checkRefreshToken = async () => await reqService.get('/login/check_refresh_token');
-   checkRefreshToken().then(res => console.log(res)).catch(err => console.log(err));
+   // useEffect(() => {
+   //    checkRefreshToken();
+   // }, []);
+
+   const nav = useNavigate();
+
+   const [refrToken, setRefrToken] = useState(null);
 
 
-   if (!checkRefreshToken()) {
+   if (!refrToken) {
       return (<NotLoggedIn></NotLoggedIn>);
    } else {
       return (
