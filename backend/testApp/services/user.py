@@ -69,7 +69,7 @@ class UserService:
 
     async def get_user_location(self,schema: dict, session: AsyncSession):
         location = schema.model_dump()
-        result = await self.user_repo.get_user_location(location: dict, session: AsyncSession)
+        result = await self.user_repo.get_user_location(location, session)
         return result
 
 
