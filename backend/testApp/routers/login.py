@@ -1,4 +1,4 @@
-from auth.state_storage import state_storage
+# from auth.state_storage import state_storage
 from fastapi import APIRouter, Depends, Form, Response, Request,Body
 from fastapi.responses import RedirectResponse
 from schemas.user.user import UserLogin
@@ -88,7 +88,7 @@ async def get_tokens_with_google(
 @router.post("/get_google_token")
 async def get_google_token(
     code: Annotated[str, Body()],
-    state: Annotated[str, Body()],
+    # state: Annotated[str, Body()],
     user_service: Annotated[UserService,Depends(user_service)],
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
 ):
