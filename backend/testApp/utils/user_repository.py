@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from db.db import db_helper
-from sqlalchemy import select, insert,update
+from sqlalchemy import select, insert, update
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
@@ -8,6 +8,8 @@ from auth.utils import hash_password, validate_password, encode_jwt, decode_jwt
 from schemas.token.token import TokenInfo
 from datetime import datetime
 from models.user import User
+from models.session import UserSession
+from datetime import timedelta,datetime
 
 
 ACCESS_TOKEN_TYPE = "access_token"
@@ -138,6 +140,23 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                         )
         return new_user
 
+    async def create_user_session(self,user: User, payload: dict, session: AsyncSession):
+         
+        new_session = UserSession(
+            user_id=user.id,
+            refresh_token= encode_jwt(payload),
+            exp=datetime.fromtimestamp(payload["exp"]), 
+            iat=datetime.fromtimestamp(payload["iat"]),
+            is_blacklisted=False)
+        
+
+        async with session.begin():
+            session.add(new_session)
+            await session.flush() 
+            await session.refresh(new_session)  
+            
+        return new_session
+
     async def login_user(self, data_dict: dict, session: AsyncSession)->TokenInfo:
 
         async with session as session:
@@ -156,12 +175,12 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 payload = {
                     "sub": user.username,
                     "email": user.email,
-                    "token_type": ACCESS_TOKEN_TYPE,
+                    "token_type": REFRESH_TOKEN_TYPE,
                 }
-                access_token = encode_jwt(payload)
+                refresh_token = encode_jwt(payload)
             else:  
                 raise HTTPException(status_code = 422,detail = "Password must be at least 4 characters long")
-            return TokenInfo(access_token=access_token)
+            return TokenInfo(refresh_token=refresh_token)
             # return TokenInfo(access_token=access_token, refresh_token=refresh_token)
 
     async def refresh_token(
@@ -209,3 +228,23 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 await session.execute(stmt_update)
                 await session.commit()
             return user.email_is_confirmed
+        
+    async def get_tokens_with_google(self, email: str,session: AsyncSession):
+        async with session as session:
+            stmt = select(self.model).where(self.model.email == email)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+
+            if user is None:
+                raise HTTPException(status_code=401, detail="Invalid email")
+
+            if not user.is_active:
+                raise HTTPException(status_code=403, detail="User inactive")
+            user_id  = user.id
+            stmt = select(UserSession.refresh_token).where(UserSession.user_id == user_id)
+            result = await session.execute(stmt)
+            refresh_token = result.scalar_one_or_none()
+            return TokenInfo(refresh_token = refresh_token)
+
+    async def get_user_location(self,location: dict,session: AsyncSession):
+        pass

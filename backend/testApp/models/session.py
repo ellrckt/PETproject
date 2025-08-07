@@ -1,7 +1,10 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, declared_attr,relationship
-from sqlalchemy import String, Integer,BigInteger,Boolean,ForeignKey
 from models.base import Base
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey
+from geoalchemy2 import Geometry
+from models.user import User
+from datetime import datetime
+from sqlalchemy.types import Integer,String,DateTime,Boolean
 
 class UserSession(Base):
 
@@ -9,8 +12,8 @@ class UserSession(Base):
 
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
     refresh_token: Mapped[str] = mapped_column(String, nullable=False)
-    exp: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    iat: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    exp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    iat: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     is_blacklisted: Mapped[bool] = mapped_column(Boolean, default=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     user: Mapped["User"] = relationship("User", back_populates="sessions")

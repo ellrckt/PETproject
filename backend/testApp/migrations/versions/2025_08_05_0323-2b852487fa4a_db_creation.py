@@ -1,8 +1,8 @@
 """db creation
 
-Revision ID: e262e0bdba26
-Revises: 285c102156b8
-Create Date: 2025-08-04 03:11:50.717469
+Revision ID: 2b852487fa4a
+Revises:
+Create Date: 2025-08-05 03:23:10.859518
 
 """
 
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "e262e0bdba26"
-down_revision: Union[str, None] = "285c102156b8"
+revision: str = "2b852487fa4a"
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -36,8 +36,8 @@ def upgrade() -> None:
         "usersession",
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("refresh_token", sa.String(), nullable=False),
-        sa.Column("exp", sa.BigInteger(), nullable=False),
-        sa.Column("iat", sa.BigInteger(), nullable=False),
+        sa.Column("exp", sa.DateTime(), nullable=False),
+        sa.Column("iat", sa.DateTime(), nullable=False),
         sa.Column("is_blacklisted", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(

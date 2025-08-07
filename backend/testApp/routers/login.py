@@ -42,7 +42,7 @@ def check_jwt(access_token: str):
 async def login_user(
     schema: UserLogin,
     user_service: Annotated[UserService, Depends(user_service)],
-    response: Response,
+    # response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     result = await user_service.login_user(schema, session)
@@ -54,6 +54,15 @@ def get_google_uri():
     # return RedirectResponse(url=uri,status_code = 302)
     return uri
 
+@router.post("/get_tokens_with_google",response_model = TokenInfo)
+async def get_tokens_with_google(
+    email: str,
+    user_service: Annotated[UserService,Depends(user_service)],
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+):
+    result = await user_service.get_tokens_with_google(email,session)
+    return result
+    
 
 
 @router.post("/get_google_token")
@@ -88,9 +97,8 @@ async def get_google_token(
             #     algorithms=["RS256"],
             #     options={"verify_signature": False},
             # )
-    return {
-        res
-    }
+    return res
+    
 
 # @router.post("", response_model=TokenInfo)
 # async def login_user(

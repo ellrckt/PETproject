@@ -8,6 +8,14 @@ class UserCreation(BaseModel):
     email: EmailStr
     password: str
 
+class UserLocation(BaseModel):
+    model_config = ConfigDict(strict=True)
+    lat: float
+    ing: float
+
+class UserCityCountry(BaseModel):
+    country: str
+    city: str
 
 class UserResponse(UserCreation):
     model_config = ConfigDict(strict=True)
