@@ -8,6 +8,7 @@ import bcrypt
 from routers.user import router as user_router
 from routers.user_registration import router as user_registration_router
 from routers.login import router as login_router
+from routers.profiles import router as profile_router
 # from routers.profiles import profiles as profile_router
 
 from fastapi.middleware.cors import CORSMiddleware

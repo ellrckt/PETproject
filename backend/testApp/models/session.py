@@ -2,7 +2,6 @@ from models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 from geoalchemy2 import Geometry
-from models.user import User
 from datetime import datetime
 from sqlalchemy.types import Integer,String,DateTime,Boolean
 

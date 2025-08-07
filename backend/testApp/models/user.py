@@ -1,8 +1,8 @@
 from models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import String, Boolean
-# from models.session import UserSession
-# from models.location import UserLocation
+from models.session import UserSession
+from models.location import UserLocation
 class User(Base):
 
     __tablename__ = 'user'

@@ -3,7 +3,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
 from geoalchemy2 import Geometry
 from sqlalchemy.types import String, Boolean
-from models.user import User
 from typing import Optional
 
 class UserLocation(Base):
