@@ -246,5 +246,10 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             refresh_token = result.scalar_one_or_none()
             return TokenInfo(refresh_token = refresh_token)
 
+    async def set_user_location(location: dict,session: AsyncSession):
+        async with session as session:
+            pass
+
+
     async def get_user_location(self,location: dict,session: AsyncSession):
         pass
