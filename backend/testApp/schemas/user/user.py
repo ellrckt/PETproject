@@ -11,7 +11,7 @@ class UserCreation(BaseModel):
 class UserLocation(BaseModel):
     model_config = ConfigDict(strict=True)
     lat: float
-    ing: float
+    lng: float
 
 class UserCityCountry(BaseModel):
     country: str
