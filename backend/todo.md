@@ -1,8 +1,13 @@
+# COMMON
+
+## DO
+
+### - Delete acccount
+### - 
+
+
 # BACKEND
-
 ## DONE
-
-
 
 ## DO
 ### 1.Profiles
@@ -19,7 +24,4 @@
 ## DONE
 
 ## DO
-
 ### 1.
-
- 

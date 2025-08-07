@@ -1,10 +1,10 @@
 import React from 'react';
 import LoginForm from '../components/LoginForm';
 
-function Login() {
+function LoginPage() {
    return (
       <LoginForm></LoginForm>
    );
 }
 
-export default Login;
+export default LoginPage;

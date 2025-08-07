@@ -7,7 +7,7 @@ import reqService from "../API/RequestService";
 import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn"
 
-function Home() {
+function HomePage() {
    useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
@@ -24,6 +24,7 @@ function Home() {
       }
    }, []);
 
+   console.log(jwtService.getAccessToken());
 
    if (!jwtService.getAccessToken()) {
       return (<NotLoggedIn></NotLoggedIn>);
@@ -36,4 +37,4 @@ function Home() {
    }
 }
 
-export default Home;
+export default HomePage;

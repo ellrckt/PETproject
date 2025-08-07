@@ -1,10 +1,10 @@
 import React from 'react';
 import RegistForm from '../components/RegistForm';
 
-function Signup() {
+function SignupPage() {
    return (
       <RegistForm></RegistForm>
    );
 }
 
-export default Signup;
+export default SignupPage;
