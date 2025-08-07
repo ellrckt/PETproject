@@ -5,13 +5,14 @@ from db.db import db_helper
 from services.user import UserService
 from testapp.dependencies import user_service
 from schemas.user.user import UserResponse
+from schemas.token.token import TokenInfo
 from typing import Annotated
 import random
 import string
 router = APIRouter(tags=["registration"], prefix="/registration")
-from auth.utils import encode_jwt,REFRESH_TOKEN_TYPE
+from auth.utils import encode_jwt,REFRESH_TOKEN_TYPE,ACCESS_TOKEN_TYPE
 
-@router.post("", response_model=UserResponse)
+@router.post("", response_model=TokenInfo)
 async def register_user(
     schema: UserRegistration,
     user_service: Annotated[UserService, Depends(user_service)],
@@ -26,6 +27,13 @@ async def register_user(
                 "token_type": REFRESH_TOKEN_TYPE,
                 }
     refresh_token = encode_jwt(payload)
+    user_session = await user_service.create_user_session(result,refresh_token,session)
+    payload = {
+                "sub": result.username,
+                "email": result.email,
+                "token_type": ACCESS_TOKEN_TYPE,
+                }
+    access_token = encode_jwt(payload) 
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -35,4 +43,4 @@ async def register_user(
         max_age=3600,
         path="/",
     )
-    return result
+    return TokenInfo(refresh_token=refresh_token,access_token=access_token)

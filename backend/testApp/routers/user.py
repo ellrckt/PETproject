@@ -1,5 +1,5 @@
 from testapp.dependencies import user_service, user_crud_service
-from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserEmailConffirmation
+from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserEmailConffirmation,UserLocation,UserCityCountry
 from services.user import UserService
 from typing import Annotated, List
 from fastapi import Depends, APIRouter, Request, Response
@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from routers.login import check_jwt
 from auth.utils import decode_jwt, encode_jwt
 from fastapi import Request
-
 router = APIRouter(tags=["user_crud"], prefix="/user")
 
 http_bearer = HTTPBearer()
@@ -64,6 +63,22 @@ async def update_user(
     payload = decode_jwt(request.cookies.get("access_token"))
     result = await user_service.update(schema, session, payload)
     return result
+
+@router.get("/get_user_location")
+async def get_user_location(
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    user_service: Annotated[UserService,Depends(user_service)],
+    schema: UserLocation
+    )->UserCityCountry:
+
+    result = await user_service.get_user_location(schema,session)
+    return UserCityCountry(city = result.city, country = result.country)
+
+
+
+
+
+
 
 # @router.post('/confirm_email')
 # async def confirm_email(

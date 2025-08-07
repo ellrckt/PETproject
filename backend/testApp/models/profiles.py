@@ -6,11 +6,11 @@ from models.base import Base
 
 class Profile(Base):
     username: Mapped[str] = mapped_column(String(30), nullable=False)
-    age: Mapped[str] = mapped_column(Integer,nullable = False)
-    city: Mapped[str] = mapped_column(String,nullable = False)
+    age: Mapped[str] = mapped_column(Integer,nullable = True)
+    city: Mapped[str] = mapped_column(String,nullable = True)
     about_user: Mapped[str] = mapped_column(String,nullable=True)
-
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    
     # password: Mapped[str] = mapped_column(String(128), nullable=False)
     # email_is_confirmed: Mapped[bool] = mapped_column(Boolean,default = False)
     # profile: Mapped["Profile"] = relationship("Profile", back_populates="user", uselist=False)

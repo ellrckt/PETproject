@@ -5,6 +5,9 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from models.base import Base
+from models.user import User
+from models.location import UserLocation
+from models.session import UserSession
 from alembic import context
 
 config = context.config
