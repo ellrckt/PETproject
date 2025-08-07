@@ -43,10 +43,19 @@ def check_jwt(access_token: str):
 async def login_user(
     schema: UserLogin,
     user_service: Annotated[UserService, Depends(user_service)],
-    # response: Response,
+    response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     result = await user_service.login_user(schema, session)
+    response.set_cookie(
+        key="refresh_token",
+        value=result.refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="Lax",
+        max_age=3600,
+        path="/",
+    )
     return result
  
 @router.get("/get_google_uri")

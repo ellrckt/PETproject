@@ -3,12 +3,13 @@ from db.db import db_helper
 from sqlalchemy import select, insert, update
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException
+from fastapi import HTTPException,Request, Response
 from auth.utils import hash_password, validate_password, encode_jwt, decode_jwt
 from schemas.token.token import TokenInfo
 from datetime import datetime
 from models.user import User
 from models.session import UserSession
+from models.location import UserLocation
 from datetime import timedelta,datetime
 
 
@@ -221,10 +222,20 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             refresh_token = result.scalar_one_or_none()
             return TokenInfo(refresh_token = refresh_token)
 
-    async def set_user_location(location: dict,session: AsyncSession):
+    async def set_user_location(self,location: dict, session: AsyncSession, email: str):
         async with session as session:
-            pass
+            stmt = select(self.model).where(self.model.email == email)
+            result = session.execute(stmt)
+            user = result.scalare_one_or_none()
+            if user is None:
+                raise HTTPException(status_code=401, detail="Invalid email")
+
+            if not user.is_active:
+                raise HTTPException(status_code=403, detail="User inactive")
+            user_id = user.id
+            stmt = insert(UserLocation).values(UserLocation())
 
 
-    async def get_user_location(self,location: dict,session: AsyncSession):
-        pass
+
+    async def get_user_location(self,location: dict,session: AsyncSession, email: str):
+            self.set_user_location(location,session,email)

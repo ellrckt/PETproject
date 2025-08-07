@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from geoalchemy2 import Geometry
 from sqlalchemy.types import String, Boolean
 from typing import Optional
-
+from sqlalchemy import func
 class UserLocation(Base):
     __tablename__ = "user_locations"
     
@@ -17,3 +17,4 @@ class UserLocation(Base):
     )
     user: Mapped["User"] = relationship("User", back_populates="locations")
     country: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(100), nullable = True) 
