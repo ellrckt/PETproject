@@ -18,8 +18,8 @@ async def get_user_location(
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
     user_service: Annotated[UserService,Depends(user_service)],
     schema: UserLocation,
-    response: Response,
+    request: Request,
     )->UserCityCountry:
 
-    result = await user_service.get_user_location(schema,session,response)
+    result = await user_service.get_user_location(schema,session,request)
     return UserCityCountry(city = result.city, country = result.country)

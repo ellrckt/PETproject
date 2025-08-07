@@ -36,3 +36,4 @@ app.add_middleware(
 app.include_router(user_router)
 app.include_router(user_registration_router)
 app.include_router(login_router)
+app.include_router(profile_router)
