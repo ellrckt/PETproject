@@ -25,8 +25,11 @@ function HomePage() {
       }
    }, []);
 
-   
-   if (!jwtService.getAccessToken()) {
+   const checkRefreshToken = async () => await reqService.get('/login/check_refresh_token');
+   checkRefreshToken().then(res => console.log(res)).catch(err => console.log(err));
+
+
+   if (!checkRefreshToken()) {
       return (<NotLoggedIn></NotLoggedIn>);
    } else {
       return (
