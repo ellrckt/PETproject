@@ -8,24 +8,24 @@ import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn"
 
 function HomePage() {
+
    useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
+      const state = params.get('state');
       async function getData() {
-         const res = await reqService.post('/login/get_google_token', code);
+         const res = await reqService.post('/login/get_google_token', {code: code, state: state});
          console.log('Результат: ', res);
          return res;
       }
-      if (code) {
-         //console.log(code);
+      if (code && state) {
          getData();
       } else {
          console.log('there is no code in url');
       }
    }, []);
 
-   console.log(jwtService.getAccessToken());
-
+   
    if (!jwtService.getAccessToken()) {
       return (<NotLoggedIn></NotLoggedIn>);
    } else {
