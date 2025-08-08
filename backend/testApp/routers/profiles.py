@@ -13,7 +13,7 @@ from fastapi import Request
 router = APIRouter(tags=["profiles"], prefix="/profile")
 
 
-@router.get("/get_user_location")
+@router.post("/get_user_location")
 async def get_user_location(
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
     user_service: Annotated[UserService,Depends(user_service)],
