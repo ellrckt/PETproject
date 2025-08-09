@@ -86,16 +86,16 @@ async def get_tokens_with_google(
 
 @router.post("/get_google_token")
 async def get_google_token(
-    code: Annotated[str, Body()],
+    code: str,
     # state: Annotated[str, Body()],
     user_service: Annotated[UserService,Depends(user_service)],
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
 ):
-    if state not in state_storage:
-        raise HTTPException(detail="State is invalid",status_code = 405)
-    else:
-        print("Стейт корректный")
-    google_token_url = "https://oauth2.googleapis.com/token"
+    # if state not in state_storage:
+    #     raise HTTPException(detail="State is invalid",status_code = 405)
+    # else:
+    #     print("Стейт корректный")
+    # google_token_url = "https://oauth2.googleapis.com/token"
 
     async with aiohttp.ClientSession() as session:
         async with session.post(

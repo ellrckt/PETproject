@@ -17,6 +17,11 @@ class UserCityCountry(BaseModel):
     country: str
     city: str
 
+class GetUser(BaseModel):
+    pass
+
+
+
 class UserResponse(UserCreation):
     model_config = ConfigDict(strict=True)
     id: int
@@ -42,10 +47,10 @@ class UserUpdate(BaseModel):
     password: str | None = None
 
 
-class UserEmailConffirmation(BaseModel):
+# class UserEmailConffirmation(BaseModel):
     
-    confirmation_code: str
-    typed_code: str
+#     confirmation_code: str
+#     typed_code: str
 
 # class GCode(BaseModel):
 #     code: str

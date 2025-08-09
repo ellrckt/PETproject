@@ -50,6 +50,15 @@ class SQLAlchemyUserCRUDRepository(AbstractUserCRUDRepository):
             await session.commit()
             user_instance = res.scalar_one()
             return user_instance
+        
+    async def get_user_by_email(self,session: AsyncSession,email: str):
+        async with  session as session:
+            stmt = select(self.model).where(self.model.email == email)
+            user = await session.execute(stmt)
+            if user is None:
+                raise HTTPException(status_code=401, detail="Invalid email")
+            pass
+
 
     async def get_all(self, session: AsyncSession):
         async with session as session:
