@@ -28,6 +28,17 @@ async def create_user(
         password=user_instance.password,
     )
 
+@router.get("/get_user_by_email")
+async def get_user_by_email(
+    user_service: Annotated[UserService,Depends(user_crud_service)],
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    request: Request
+):
+    refresh_token = request.get_cookies("refresh_token")
+    email = decode_jwt(refresh_token)["email"]
+    print(email)
+    result = await user_crud_service.get_user_by_email(session,email)
+    
 
 @router.get("/get_users")
 async def get_all_users(

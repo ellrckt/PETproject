@@ -35,6 +35,11 @@ class UserCRUDService:
         result = await self.user_repo.update(user_dict, session, payload)
         return result
 
+    async def get_user_by_email(self,session: AsyncSession, email: str):
+
+        result = await self.user_repo.get_user_by_email(session, email)
+        return result
+
 
 
 
