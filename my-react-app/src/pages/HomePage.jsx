@@ -9,13 +9,15 @@ import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn"
 
 function HomePage() {
+   const nav = useNavigate();
 
+   //for oauth and check if user is logged in
    useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       const state = params.get('state');
 
-      console.log('1:  ', code, '2:  ', state);  
+      //console.log('1:  ', code, '2:  ', state);  
 
       async function checkRefreshToken() {
          const res = await reqService.get('/login/check_refresh_token');
@@ -27,25 +29,21 @@ function HomePage() {
       }
 
       async function getData() {
-         const res = await reqService.post('/login/get_google_token', {code: code, state: state});
+         const res = await reqService.post('/login/get_google_token', code);
          console.log('Результат: ', res);
 
          checkRefreshToken();
          nav('/home');
       }
 
-      if (code && state) {
+      if (code) {
          getData();
       } else {
          checkRefreshToken();
       }
-   }, []);
+   }, [nav]);
 
-   // useEffect(() => {
-   //    checkRefreshToken();
-   // }, []);
-
-   const nav = useNavigate();
+   
 
    const [refrToken, setRefrToken] = useState(null);
 
