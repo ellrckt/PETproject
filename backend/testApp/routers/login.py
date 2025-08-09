@@ -61,7 +61,9 @@ async def login_user(
 @router.get("/get_google_uri")
 def get_google_uri():
     uri = generate_url()
-    return RedirectResponse(url=uri,status_code = 302)
+    # return RedirectResponse(url=uri,status_code = 302)
+    return uri
+    
     
 
 @router.post("/get_tokens_with_google",response_model = TokenInfo)
@@ -87,8 +89,8 @@ async def get_tokens_with_google(
 
 @router.post("/get_google_token")
 async def get_google_token(
-    code: str,
-    # state: Annotated[str, Body()],
+    
+    code: Annotated[str, Body()],
     user_service: Annotated[UserService,Depends(user_service)],
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
 ):
@@ -96,10 +98,10 @@ async def get_google_token(
     #     raise HTTPException(detail="State is invalid",status_code = 405)
     # else:
     #     print("Стейт корректный")
-    # google_token_url = "https://oauth2.googleapis.com/token"
+    google_token_url = "https://oauth2.googleapis.com/token"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
+    async with aiohttp.ClientSession() as g_session:
+        async with g_session.post(
             url=google_token_url,
             data={
                 "client_id": settings.auth_jwt.google_client_id,
@@ -140,7 +142,6 @@ async def check_refresh_token(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token verification failed: {str(e)}"
         )
-
 
 @router.get("/refresh")
 async def refresh_token(

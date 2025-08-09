@@ -1,7 +1,7 @@
 from utils.user_repository import AbstractUserCRUDRepository,AbstractUserRepository
 from models.user import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.user.user import UserRegistration, UserLogin, UserUpdate,UserEmailConffirmation
+from schemas.user.user import UserRegistration, UserLogin, UserUpdate
 from auth.utils import decode_jwt
 # from simplegmail import Gmail
 import random
