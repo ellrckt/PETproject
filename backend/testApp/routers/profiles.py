@@ -1,5 +1,5 @@
 from testapp.dependencies import user_service, user_crud_service
-from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserEmailConffirmation,UserLocation,UserCityCountry
+from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserLocation,UserCityCountry
 from services.user import UserService
 from typing import Annotated, List
 from fastapi import Depends, APIRouter, Request, Response

@@ -15,9 +15,9 @@ function HomePage() {
    useEffect(() => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
-      const state = params.get('state');
+      //const state = params.get('state');
 
-      //console.log('1:  ', code, '2:  ', state);  
+      console.log(typeof code, code);
 
       async function checkRefreshToken() {
          const res = await reqService.get('/login/check_refresh_token');

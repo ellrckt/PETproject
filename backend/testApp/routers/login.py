@@ -95,10 +95,10 @@ async def get_google_token(
     #     raise HTTPException(detail="State is invalid",status_code = 405)
     # else:
     #     print("Стейт корректный")
-    # google_token_url = "https://oauth2.googleapis.com/token"
+    google_token_url = "https://oauth2.googleapis.com/token"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
+    async with aiohttp.ClientSession() as g_session:
+        async with g_session.post(
             url=google_token_url,
             data={
                 "client_id": settings.auth_jwt.google_client_id,
