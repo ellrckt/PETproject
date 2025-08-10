@@ -17,7 +17,7 @@ function LoginForm() {
 
    async function loginUser(email, password) {
       const res = await jwtService.post("/login", {
-         email: email,
+         email: email.toLowerCase(),
          password: password,
       });
 

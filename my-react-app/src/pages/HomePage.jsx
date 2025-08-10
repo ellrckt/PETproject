@@ -29,7 +29,7 @@ function HomePage() {
       }
 
       async function getData() {
-         const res = await reqService.post('/login/get_google_token', {code: code});
+         const res = await reqService.post('/login/get_google_token', code);
          console.log('Результат: ', res);
 
          checkRefreshToken();

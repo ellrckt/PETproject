@@ -17,7 +17,7 @@ function RegistForm() {
    async function registUser(username, email, password, repeatPassword) {
       const res = await reqService.post("/registration", {
          username: username,
-         email: email,
+         email: email.toLowerCase(),
          password: password,
          repit_password: repeatPassword,
       });
