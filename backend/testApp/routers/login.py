@@ -61,8 +61,8 @@ async def login_user(
 @router.get("/get_google_uri")
 def get_google_uri():
     uri = generate_url()
-    # return RedirectResponse(url=uri,status_code = 302)
-    return uri
+    return RedirectResponse(url=uri,status_code = 302)
+    # return uri
     
     
 

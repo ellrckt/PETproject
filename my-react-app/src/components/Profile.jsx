@@ -46,7 +46,7 @@ function Profile() {
                   : (
                      <div>
                         <h2>{name}</h2>
-                        <h2>Место</h2>
+                        <h2>*Location*</h2>
                         <h2>{about}</h2>
                         
                      </div>
