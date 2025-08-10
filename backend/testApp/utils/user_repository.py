@@ -128,8 +128,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             if len(user_data["email"])==0:
                 raise HTTPException(status_code = 400, detail = "Email is required")
             else:
-                lower_user_data = {k: v.lower() if isinstance(v, str) else v for k, v in user_data.items()}
-                stmt = select(self.model).where(self.model.email == lower_user_data["email"])
+                stmt = select(self.model).where(self.model.email == user_data["email"])
                 result = await session.execute(stmt)
                 user = result.scalar_one_or_none()
                 if user is not None:
@@ -173,8 +172,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def login_user(self, data_dict: dict, session: AsyncSession)->TokenInfo:
 
         async with session as session:
-            lower_data_dict = {k: v.lower() if isinstance(v, str) else v for k, v in lower_data_dict.items()}
-            stmt = select(self.model).where(self.model.email == lower_data_dict["email"])
+            stmt = select(self.model).where(self.model.email == data_dict["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             if user is None:
@@ -217,7 +215,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             return access_token
     
         
-    async def get_tokens_with_google(self, email: str,session: AsyncSession):
+    async def get_tokens_with_google(self, email: str,session: AsyncSession,response: Response):
         async with session as session:
             stmt = select(self.model).where(self.model.email == email)
             result = await session.execute(stmt)
@@ -232,6 +230,15 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             stmt = select(UserSession.refresh_token).where(UserSession.user_id == user_id)
             result = await session.execute(stmt)
             refresh_token = result.scalar_one_or_none()
+            response.set_cookie(
+            key="refresh_token",
+            value=result.refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=3600,
+            path="/",
+            )
             return TokenInfo(refresh_token = refresh_token)
 
     async def set_user_location(self,location: dict, session: AsyncSession, email: str,city: str, country: str)->UserCityCountry:
