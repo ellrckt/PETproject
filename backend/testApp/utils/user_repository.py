@@ -128,7 +128,8 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             if len(user_data["email"])==0:
                 raise HTTPException(status_code = 400, detail = "Email is required")
             else:
-                stmt = select(self.model).where(self.model.email == user_data["email"])
+                lower_user_data = {k: v.lower() if isinstance(v, str) else v for k, v in user_data.items()}
+                stmt = select(self.model).where(self.model.email == lower_user_data["email"])
                 result = await session.execute(stmt)
                 user = result.scalar_one_or_none()
                 if user is not None:
@@ -172,8 +173,8 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def login_user(self, data_dict: dict, session: AsyncSession)->TokenInfo:
 
         async with session as session:
-            
-            stmt = select(self.model).where(self.model.email == data_dict["email"])
+            lower_data_dict = {k: v.lower() if isinstance(v, str) else v for k, v in lower_data_dict.items()}
+            stmt = select(self.model).where(self.model.email == lower_data_dict["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             if user is None:
@@ -201,7 +202,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         print(refresh_token)
         access_payload = decode_jwt(refresh_token)
         async with session as session:
-            stmt = select(self.model).where(self.model.email == access_payload["email"])
+            stmt = select(self.model).where(self.model.email == access_payload["email"].lower())
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             if user is None:
