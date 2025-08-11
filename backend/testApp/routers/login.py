@@ -89,7 +89,7 @@ async def get_tokens_with_google(
 
 @router.post("/get_google_token")
 async def get_google_token(
-    
+    response: Response,
     code: Annotated[str, Body()],
     user_service: Annotated[UserService,Depends(user_service)],
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
@@ -111,8 +111,8 @@ async def get_google_token(
                 "code": code,
             },
             ssl=False,
-        ) as response:
-            res = await response.json()
+        ) as g_response:
+            res = await g_response.json()
             id_token = res["id_token"]
             user_data = jwt.decode(
                 id_token,
@@ -120,6 +120,15 @@ async def get_google_token(
                 options={"verify_signature": False},
             )
         result = await user_service.get_tokens_with_google(user_data["email"],session)
+        response.set_cookie(
+            key="refresh_token",
+            value=result.refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=3600,
+            path="/",
+        )
     return result
 
 @router.get("/check_refresh_token")
