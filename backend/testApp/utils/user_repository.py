@@ -5,12 +5,14 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException,Request, Response
 
+from models.habits import Habits
 from auth.utils import hash_password, validate_password, encode_jwt, decode_jwt
 from schemas.token.token import TokenInfo
 from datetime import datetime
 from models.user import User
 from models.session import UserSession
 from models.location import UserLocation
+from models.profiles import Profile
 from datetime import timedelta,datetime
 from schemas.user.user import UserCityCountry
 
@@ -121,6 +123,69 @@ class AbstractUserRepository(ABC):
 class SQLAlchemyUserRepository(AbstractUserRepository):
 
     model = User
+
+    async def get_hobbies(self,session: AsyncSession):
+        async with session as session:
+            stmt = select(Habits)
+            result = await session.execute(stmt)
+            hobbies = result.scalars().all()
+        
+        return hobbies
+    
+    async def get_user_profile(self,session: AsyncSession,email: str):
+        stmt = select(self.model).where(self.model.email == email)
+        async with session as session:
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            if user is  None:
+                    raise HTTPException(
+                        status_code=400, detail="Not such user"
+                    )
+            user_id = user["id"]
+            stmt = select(Profile).where(Profile.user_id == user_id)
+            profile = await session.execute(stmt).scalar_one_or_none()
+
+        return profile
+    
+    async def update_profile(self,session: AsyncSession,email: str,profile_data: dict):
+        stmt = select(self.model).where(self.model.email == email)
+        async with session as session:
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            if user is  None:
+                    raise HTTPException(
+                        status_code=400, detail="Not such user"
+                    )
+            user_id = user.id
+            stmt = select(Profile).where(Profile.user_id == user_id)
+            result = await session.execute(stmt)
+            profile = result.scalar_one_or_none()
+            for field, value in profile_data.items():
+                setattr(profile, field, value)
+            await session.commit()
+            await session.refresh(profile)
+
+        return profile
+    
+    async def create_profile(self,session: AsyncSession,email: str,profile_data: dict):
+        stmt = select(self.model).where(self.model.email == email)
+        async with session as session:
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            if user is  None:
+                    raise HTTPException(
+                        status_code=400, detail="Not such user"
+                    )
+            profile_data["user_id"] = user.id
+            stmt = insert(Profile).values(**profile_data).returning(Profile)
+            result = await session.execute(stmt)
+            profile = result.scalar_one_or_none()
+            
+            await session.commit()
+            await session.refresh(profile)
+    
+        return profile
+
 
     async def register_user(self, user_data: dict, session: AsyncSession):
 

@@ -69,20 +69,10 @@ def get_google_uri():
 @router.post("/get_tokens_with_google",response_model = TokenInfo)
 async def get_tokens_with_google(
     email: str,
-    response: Response,
     user_service: Annotated[UserService,Depends(user_service)],
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
 ):
     result = await user_service.get_tokens_with_google(email,session)
-    response.set_cookie(
-        key="refresh_token",
-        value=result.refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-        path="/",
-    )
     return result
     
 
@@ -119,6 +109,7 @@ async def get_google_token(
                 algorithms=["RS256"],
                 options={"verify_signature": False},
             )
+        
         result = await user_service.get_tokens_with_google(user_data["email"],session)
         response.set_cookie(
             key="refresh_token",
@@ -129,6 +120,7 @@ async def get_google_token(
             max_age=3600,
             path="/",
         )
+
     return result
 
 @router.get("/check_refresh_token")

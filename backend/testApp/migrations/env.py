@@ -8,6 +8,8 @@ from models.base import Base
 from models.user import User
 from models.location import UserLocation
 from models.session import UserSession
+from models.profiles import Profile
+from models.habits import Habits
 from alembic import context
 
 config = context.config
@@ -15,7 +17,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Установите правильный URL для подключения к Docker-контейнеру
 config.set_main_option(
     "sqlalchemy.url", "postgresql+asyncpg://admin:admin@localhost:5432/pet_db"
 )

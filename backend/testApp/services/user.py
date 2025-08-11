@@ -98,3 +98,29 @@ class UserService:
         city,country = await self.get_city_country(location)
         result = await self.user_repo.get_user_location(location, session, email,city,country)
         return result
+    
+    async def get_hobbies(self,session: AsyncSession):
+        result = await self.user_repo.get_hobbies(session)
+        hobbies_list = [hobby.name for hobby in result]
+        return hobbies_list
+    
+    async def get_user_profile(self,session: AsyncSession,refresh_token: str):
+        payload = decode_jwt(refresh_token)
+        email = payload["email"]
+        result = await self.user_repo.get_user_profile(session,email)
+        return result
+
+    async def update_profile(self,session: AsyncSession,refresh_token: str,schema: dict):
+        profile_data = schema.model_dump(exclude_unset = True)
+        payload = decode_jwt(refresh_token)
+        email = payload["email"]
+        result = await self.user_repo.update_profile(session,email,profile_data)
+        return result
+
+    async def create_profile(self,session: AsyncSession,refresh_token: str,schema: dict):
+        profile_data = schema.model_dump()
+        payload = decode_jwt(refresh_token)
+        email = payload["email"]
+        result = await self.user_repo.create_profile(session,email,profile_data)
+        return result
+

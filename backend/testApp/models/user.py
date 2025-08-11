@@ -3,6 +3,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import String, Boolean
 from models.session import UserSession
 from models.location import UserLocation
+from models.habits import Habits
+from models.profiles import Profile
 class User(Base):
 
     __tablename__ = 'user'
@@ -15,6 +17,11 @@ class User(Base):
     sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user")
     locations: Mapped["UserLocation"] = relationship(
         "UserLocation", 
+        back_populates="user", 
+        cascade="all, delete-orphan"  
+    )
+    profile: Mapped["Profile"] = relationship(
+        "Profile", 
         back_populates="user", 
         cascade="all, delete-orphan"  
     )
