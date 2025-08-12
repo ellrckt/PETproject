@@ -141,36 +141,55 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                     raise HTTPException(
                         status_code=400, detail="Not such user"
                     )
-            user_id = user["id"]
-            stmt = select(Profile).where(Profile.user_id == user_id)
-            profile = await session.execute(stmt).scalar_one_or_none()
-
-        return profile
-    
-    async def update_profile(self,session: AsyncSession,email: str,profile_data: dict):
-        stmt = select(self.model).where(self.model.email == email)
-        async with session as session:
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-            if user is  None:
-                    raise HTTPException(
-                        status_code=400, detail="Not such user"
-                    )
             user_id = user.id
             stmt = select(Profile).where(Profile.user_id == user_id)
             result = await session.execute(stmt)
             profile = result.scalar_one_or_none()
-            for field, value in profile_data.items():
-                setattr(profile, field, value)
-            await session.commit()
-            await session.refresh(profile)
 
         return profile
+    
+    async def update_profile(self, session: AsyncSession, email: str, profile_data: dict):
+        try:
+            stmt = select(self.model).where(self.model.email == email)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            
+            if user is None:
+                raise HTTPException(
+                    status_code=404, 
+                    detail="User not found"
+                )
+
+            stmt = select(Profile).where(Profile.user_id == user.id)
+            result = await session.execute(stmt)
+            profile = result.scalar_one_or_none()
+
+            if profile is None:
+                profile_data["user_id"] = user.id
+                stmt = insert(Profile).values(**profile_data).returning(Profile)
+                result = await session.execute(stmt)
+                profile = result.scalar_one()
+            else:
+                for field, value in profile_data.items():
+                    if hasattr(profile, field):  
+                        setattr(profile, field, value)
+
+            await session.commit()
+            await session.refresh(profile)
+            
+            return profile
+
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to update profile: {str(e)}"
+            )
     
     async def create_profile(self,session: AsyncSession,email: str,profile_data: dict):
         stmt = select(self.model).where(self.model.email == email)
         async with session as session:
-            result = await session.execute(stmt)
+            result = await session.execute(stmt) 
             user = result.scalar_one_or_none()
             if user is  None:
                     raise HTTPException(
