@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import Button from './UI/Button';
 import Input from "./UI/Input";
@@ -6,10 +6,25 @@ import NavBar from './NavBar';
 import PhotoLoader from './UI/PhotoLoader';
 import DropDown from './UI/DropDown';
 
+import reqService from '../API/RequestService';
+
+
 function Profile() {
    const [name, setName] = useState('');
    const [about, setAbout] = useState('');
+   const [country, setCountry] = useState('');
+   const [city, setCity] = useState('');
+   const [hobbiesList, setHobbiesList] = useState([]);
    const [edit, setEdit] = useState(false);
+   
+   const getHobbiesList = async () => {
+      const res = await reqService.get('/profile/get_hobbies');
+      setHobbiesList(res.data);
+   }
+
+   useEffect(() => {
+      getHobbiesList();
+   }, [])
 
    return (
       <div className="min-h-screen bg-gray-50">
@@ -59,7 +74,7 @@ function Profile() {
                         
                         <div className="mt-6">
                            <h3 className="text-gray-500 text-sm">Location</h3>
-                           <p className="text-gray-700">*Location*</p>
+                           <p className="text-gray-700">Country: {country}   City:{city}</p>
                         </div>
                         
                         <div className="mt-6">
@@ -69,7 +84,7 @@ function Profile() {
                            </p>
                         </div>
 
-                        <DropDown options={['sport', 'study', 'shopping', 'memes']} text='Select your interests (max. 3)' />
+                        <DropDown options={hobbiesList} text='Select your interests (max. 3)' />
                         
                         <div className="flex justify-end mt-6">
                            <Button

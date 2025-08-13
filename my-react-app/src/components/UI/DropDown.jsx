@@ -16,7 +16,7 @@ function DropDown(props) {
       <div>
          <div>
             {
-               selected.map((el) => (<p>{el}</p>))
+               selected.map((el, ind) => (<p key={ind}>{el}</p>))
             }
          </div>
 

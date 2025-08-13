@@ -5,6 +5,8 @@ import reqService from "../API/RequestService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
 
+import useLocation from "../hooks/useLocation";
+
 function RegistForm() {
    const [username, setName] = useState("");
    const [email, setEmail] = useState("");
@@ -14,6 +16,8 @@ function RegistForm() {
 
    const nav = useNavigate();
 
+   const coords = useLocation();
+
    async function registUser(username, email, password, repeatPassword) {
       const res = await reqService.post("/registration", {
          username: username,
@@ -22,7 +26,14 @@ function RegistForm() {
          repit_password: repeatPassword,
       });
       
-      typeof res === 'string' ? setError(res) : nav("/home");
+      if (typeof res === 'string') {
+         setError(res);
+      } else {
+         await reqService.post('/profile/get_user_location', coords);
+         // user coords are in db, localstorage - alternative
+         //localStorage.setItem('location', JSON.stringify(userLocation.data));
+         nav("/home");
+      }
    }
 
    return (
