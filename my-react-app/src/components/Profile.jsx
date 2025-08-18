@@ -11,20 +11,39 @@ import reqService from '../API/RequestService';
 
 function Profile() {
    const [name, setName] = useState('');
+   const [age, setAge] = useState(undefined);
    const [about, setAbout] = useState('');
    const [country, setCountry] = useState('');
    const [city, setCity] = useState('');
+   const [userHobbies, setUserHobbies] = useState([]);
+
    const [hobbiesList, setHobbiesList] = useState([]);
    const [edit, setEdit] = useState(false);
+
+   useEffect(() => {
+      getHobbiesList();
+      //getProfile();
+   }, [])
    
    const getHobbiesList = async () => {
       const res = await reqService.get('/profile/get_hobbies');
       setHobbiesList(res.data);
    }
 
-   useEffect(() => {
-      getHobbiesList();
-   }, [])
+   const updateProfile = async (data) => {
+      await reqService.patch('/profile/update_profile', data);
+   }
+
+   const getProfile = async () => {
+      const res = await reqService.get('profile/get_user_profile');
+      //console.log(res);
+      setName(res.data.username);
+      setAge(res.data.age);
+      setCity(res.data.city);
+      setCountry(res.data.country);
+      setAbout(res.data.about_user);
+      setUserHobbies(res.data.user_habits);
+   }
 
    return (
       <div className="min-h-screen bg-gray-50">
@@ -39,7 +58,7 @@ function Profile() {
                
                <div className="w-full md:w-2/3">
                   {edit ? (
-                     <div className="space-y-4">
+                     <div className="space-y-8">
                         <Input
                            placeholder={'Name'}
                            value={name}
@@ -47,10 +66,12 @@ function Profile() {
                            className="w-full"
                         />
 
-                        <h2 className="text-gray-500 text-sm mt-6 mb-2">Location</h2>
-                        <div className="p-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
-                           *Location*
-                        </div>
+                        <Input
+                           placeholder={'Age'}
+                           value={age}
+                           onChange={(e) => setAge(e.target.value)}
+                           className="w-full"
+                        />
 
                         <Input
                            placeholder={'About you (max. 200 symbols)'}
@@ -59,6 +80,8 @@ function Profile() {
                            className="w-full"
                            multiline
                         />
+
+                        <DropDown options={hobbiesList} text='Select your hobbies (max. 3)' selected={userHobbies} setSelected={setHobbiesList}/>
 
                         <div className="flex justify-end mt-6">
                            <Button
@@ -71,6 +94,11 @@ function Profile() {
                   ) : (
                      <div className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-800">{name || 'Your Name'}</h2>
+
+                        <div className="mt-6">
+                           <h3 className="text-gray-500 text-sm">Age</h3>
+                           <p className="text-gray-700">{age || 'Set your age'}</p>
+                        </div>
                         
                         <div className="mt-6">
                            <h3 className="text-gray-500 text-sm">Location</h3>
@@ -84,8 +112,13 @@ function Profile() {
                            </p>
                         </div>
 
-                        <DropDown options={hobbiesList} text='Select your interests (max. 3)' />
-                        
+                        <div className="mt-6">
+                           <h3 className="text-gray-500 text-sm">Hobbies</h3>
+                           <p className="text-gray-700 whitespace-pre-line">
+                              {userHobbies.map((el) => el) || 'set your hobbies'}
+                           </p>
+                        </div>
+
                         <div className="flex justify-end mt-6">
                            <Button
                               onClick={() => {setEdit(true)}}

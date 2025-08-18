@@ -3,28 +3,35 @@ import { useState } from 'react';
 
 //! добавить проверки на 3 элемента, на повторения в селектед, стилизовать, удаление из селектед
 
-function DropDown(props) {
+function DropDown({options, text, selected, setSelected}) {
    const [isClicked, setIsClicked] = useState(false);
-   const [selected, setSelected] = useState([]);
+   const [error, setError] = useState('');
 
-   function addSelected(newItem) {
-      setSelected([...selected, newItem]);   
+   const handleSelect = (item) => {
+      if (selected.length === 3) {
+         setError('Maximum is reached.')
+      } else {
+         selected.includes(item) ? setError('Hobbies cannot repeat.') : setSelected([...selected, item]);
+      }
    }
 
 
    return (
       <div>
          <div>
-            {
-               selected.map((el, ind) => (<p key={ind}>{el}</p>))
-            }
+            {selected.map((el, ind) => (<p key={ind}>{el}</p>))}
          </div>
 
-         <button onClick={() => setIsClicked(!isClicked)}>{props.text}</button>
+         {error
+            ? (<div>{error}</div>)
+            : (<span></span>)
+         }
+
+         <button onClick={() => setIsClicked(!isClicked)}>{text}</button>
 
          {isClicked 
             ? (<ul>
-            {props.options.map((el, ind) => (<li key={ind} className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => addSelected(el)}>{ind}. {el}</li>))}
+            {options.map((el, ind) => (<li key={ind} className="px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => handleSelect(el)}>{ind+1}. {el}</li>))}
             </ul>)
             : (<span></span>)
          }
