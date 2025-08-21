@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import jwtService from "../API/JwtService";
-import reqService from "../API/RequestService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
 
