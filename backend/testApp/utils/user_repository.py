@@ -124,6 +124,19 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
 
     model = User
 
+    async def check_jwt(self, payload: dict):
+        stmt = select(self.model).where(self.model.email == payload["email"])
+        async with session as session:
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+        stmt = select(UserSession.refresh_token).where(UserSession.user_id == user.id)
+        async with session as session:
+            result = await session.execute(stmt)
+            session = result.scalar_one_or_none()
+        if session is None:
+            raise HTTPException(status_code = 403, detail = "Refresh token is missing")
+        return True
+
     async def get_hobbies(self,session: AsyncSession):
         async with session as session:
             stmt = select(Habits)

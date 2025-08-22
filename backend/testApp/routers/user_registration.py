@@ -41,7 +41,7 @@ async def register_user(
     refresh_token = encode_jwt(payload)
     profile = await user_service.update_profile(session,refresh_token,test_profile)
     await session.commit()
-    user_session = await user_service.create_user_session(result,refresh_token,session)
+    user_session = await user_service.create_user_session(refresh_token,session)
     payload = {
                 "sub": result.username,
                 "email": result.email,
