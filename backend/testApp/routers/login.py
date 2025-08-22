@@ -128,7 +128,7 @@ async def get_google_token(
 
 @router.get("/check_refresh_token")
 async def check_refresh_token(
-    user_service: Annotated[UserService,Depends[user_service]],
+    user_service: Annotated[UserService,Depends(user_service)],
     request: Request):
     refresh_token = request.cookies.get("refresh_token")
     
