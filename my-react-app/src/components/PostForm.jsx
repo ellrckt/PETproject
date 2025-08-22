@@ -6,6 +6,7 @@ import Input from "./UI/Input";
 import PhotoLoader from "./UI/PhotoLoader";
 
 function PostForm() {
+   const [isOpen, setIsOpen] = useState(false);
    const [postText, setPostText] = useState("");
 
    const post = async () => {
@@ -18,14 +19,28 @@ function PostForm() {
 
    return (
       <div>
-         <CloseButton onClick={closeForm}></CloseButton>
-         <PhotoLoader placeholder={"Upload post image"}></PhotoLoader>
-         <Input
-            placeholder={"Post something..."}
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-         ></Input>
-         <Button onClick={post}>Post</Button>
+         <Button
+            onClick={() => {
+               setIsOpen(true);
+            }}
+         >
+            Create a new post
+         </Button>
+
+         {isOpen ? (
+            <div>
+               <CloseButton onClick={closeForm}></CloseButton>
+               <PhotoLoader placeholder={"Upload post image"}></PhotoLoader>
+               <Input
+                  placeholder={"Post something..."}
+                  value={postText}
+                  onChange={(e) => setPostText(e.target.value)}
+               ></Input>
+               <Button onClick={post}>Post</Button>
+            </div>
+         ) : (
+            <span></span>
+         )}
       </div>
    );
 }

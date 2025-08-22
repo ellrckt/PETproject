@@ -254,16 +254,14 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         async with session as session:
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
+            
+            new_session = UserSession(
+                user_id=user.id,
+                refresh_token= refresh_token,
+                exp=datetime.fromtimestamp(payload["exp"]), 
+                iat=datetime.fromtimestamp(payload["iat"]),
+                is_blacklisted=False)
 
-        new_session = UserSession(
-            user_id=user.id,
-            refresh_token= refresh_token,
-            exp=datetime.fromtimestamp(payload["exp"]), 
-            iat=datetime.fromtimestamp(payload["iat"]),
-            is_blacklisted=False)
-        
-
-        async with session:
             stmt = select(UserSession).where(UserSession.user_id == user.id)
             result = await session.execute(stmt)
             old_session = result.scalar_one_or_none()
@@ -277,7 +275,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 new_session = result.scalar_one_or_none()
            
             await session.commit() 
-            await session.refresh(new_session)  
+            
             
         return new_session
 

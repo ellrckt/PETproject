@@ -8,8 +8,6 @@ import DropDown from "./UI/DropDown";
 
 import reqService from "../API/RequestService";
 
-//!вынести часть кода из профиля в др компоненты
-
 function Profile() {
    const [name, setName] = useState("");
    const [age, setAge] = useState("");
