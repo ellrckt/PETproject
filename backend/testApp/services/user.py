@@ -54,9 +54,9 @@ class UserService:
         result = await self.user_repo.register_user(user_data, session)
         return result
     
-    async def create_user_session(self,user: User, refresh_token: str, session: AsyncSession):
+    async def create_user_session(self, refresh_token: str, session: AsyncSession):
         payload = decode_jwt(refresh_token)
-        result = await self.user_repo.create_user_session(user,payload,session)
+        result = await self.user_repo.create_user_session(refresh_token, payload,session)
         return result
     
     async def get_tokens_with_google(self, email: str,session: AsyncSession):

@@ -236,19 +236,34 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                         )
         return new_user
 
-    async def create_user_session(self,user: User, payload: dict, session: AsyncSession):
-         
+    async def create_user_session(self,refresh_token: str, payload: dict, session: AsyncSession):
+        stmt = select(self.model).where(self.model.email==payload["email"])
+        async with session as session:
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+
         new_session = UserSession(
             user_id=user.id,
-            refresh_token= encode_jwt(payload),
+            refresh_token= refresh_token,
             exp=datetime.fromtimestamp(payload["exp"]), 
             iat=datetime.fromtimestamp(payload["iat"]),
             is_blacklisted=False)
         
 
-        async with session.begin():
-            session.add(new_session)
-            await session.flush() 
+        async with session:
+            stmt = select(UserSession).where(UserSession.user_id == user.id)
+            result = await session.execute(stmt)
+            old_session = result.scalar_one_or_none()
+            if old_session is None:
+                stmt = insert(UserSession).values(
+                    user_id=new_session.user_id,
+                    refresh_token=new_session.refresh_token,
+                    exp=new_session.exp,iat=new_session.iat,
+                    is_blacklisted=new_session.is_blacklisted).returning(UserSession)
+                result = await session.execute(stmt)
+                new_session = result.scalar_one_or_none()
+           
+            await session.commit() 
             await session.refresh(new_session)  
             
         return new_session

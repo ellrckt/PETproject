@@ -47,6 +47,7 @@ async def login_user(
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     result = await user_service.login_user(schema, session)
+    session = await user_service.create_user_session(result.refresh_token,session)
     response.set_cookie(
         key="refresh_token",
         value=result.refresh_token,
@@ -56,6 +57,7 @@ async def login_user(
         max_age=3600,
         path="/",
     )
+
     return result
  
 @router.get("/get_google_uri")
@@ -111,6 +113,7 @@ async def get_google_token(
             )
         
         result = await user_service.get_tokens_with_google(user_data["email"],session)
+        session = await user_service.create_user_session(result.refresh_token,session)
         response.set_cookie(
         key="refresh_token",
         value=result.refresh_token,
