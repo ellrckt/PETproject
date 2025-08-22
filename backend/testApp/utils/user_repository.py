@@ -129,8 +129,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         async with session as session:
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
-        stmt = select(UserSession.refresh_token).where(UserSession.user_id == user.id)
-        async with session as session:
+            stmt = select(UserSession.refresh_token).where(UserSession.user_id == user.id)
             result = await session.execute(stmt)
             session = result.scalar_one_or_none()
             if session is None:
