@@ -129,6 +129,7 @@ async def get_google_token(
 @router.get("/check_refresh_token")
 async def check_refresh_token(
     user_service: Annotated[UserService,Depends(user_service)],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
     request: Request):
     refresh_token = request.cookies.get("refresh_token")
     
@@ -139,7 +140,7 @@ async def check_refresh_token(
         )
     try:
         payload = decode_jwt(refresh_token)
-        result = await user_service.check_refresh_token(refresh_token)
+        result = await user_service.check_refresh_token(refresh_token,session)
         
         return True
     except HTTPException as e:

@@ -124,7 +124,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
 
     model = User
 
-    async def check_refresh_token(self, payload: dict):
+    async def check_refresh_token(self, payload: dict, session: AsyncSession):
         stmt = select(self.model).where(self.model.email == payload["email"])
         async with session as session:
             result = await session.execute(stmt)
@@ -133,8 +133,8 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         async with session as session:
             result = await session.execute(stmt)
             session = result.scalar_one_or_none()
-        if session is None:
-            raise HTTPException(status_code = 403, detail = "Refresh token is missing")
+            if session is None:
+                raise HTTPException(status_code = 403, detail = "Refresh token is missing")
         return True
 
     async def get_hobbies(self,session: AsyncSession):
