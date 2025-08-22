@@ -138,6 +138,7 @@ async def check_refresh_token(request: Request):
     
     try:
         payload = decode_jwt(refresh_token)
+        
         return True
     except HTTPException as e:
         raise e
