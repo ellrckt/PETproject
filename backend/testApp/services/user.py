@@ -49,9 +49,9 @@ class UserService:
     def __init__(self, user_repo: AbstractUserRepository):
         self.user_repo = user_repo()
 
-    async def check_refresh_token(self,refresh_token: str):
+    async def check_refresh_token(self,refresh_token: str, session: AsyncSession):
         payload = decode_jwt(refresh_token)
-        result = await self.user_repo.check_refresh_token(payload)
+        result = await self.user_repo.check_refresh_token(payload, session)
         return result
 
     async def register_user(self, schema: UserRegistration, session: AsyncSession):
