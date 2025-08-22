@@ -127,7 +127,9 @@ async def get_google_token(
     return result
 
 @router.get("/check_refresh_token")
-async def check_refresh_token(request: Request):
+async def check_refresh_token(
+    user_service: Annotated[UserService,Depends[user_service]],
+    request: Request):
     refresh_token = request.cookies.get("refresh_token")
     
     if not refresh_token:
@@ -135,9 +137,9 @@ async def check_refresh_token(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token is missing"
         )
-    
     try:
         payload = decode_jwt(refresh_token)
+        result = await user_service.check_refresh_token(refresh_token)
         
         return True
     except HTTPException as e:
@@ -147,6 +149,8 @@ async def check_refresh_token(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token verification failed: {str(e)}"
         )
+
+    
 
 @router.get("/refresh")
 async def refresh_token(

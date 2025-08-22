@@ -124,7 +124,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
 
     model = User
 
-    async def check_jwt(self, payload: dict):
+    async def check_refresh_token(self, payload: dict):
         stmt = select(self.model).where(self.model.email == payload["email"])
         async with session as session:
             result = await session.execute(stmt)
