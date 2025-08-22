@@ -89,14 +89,14 @@ class UserService:
         return None, None
 
 
-
-    async def get_user_location(self,schema: dict, session: AsyncSession,request: Request):
+    async def set_user_lat_lng(self,schema: dict, session: AsyncSession,request: Request):
         location = schema.model_dump()
         refresh_token = request.cookies.get("refresh_token")
         payload = decode_jwt(refresh_token)
         email = payload["email"]
         city,country = await self.get_city_country(location)
-        result = await self.user_repo.get_user_location(location, session, email,city,country)
+        result = await self.user_repo.set_user_lat_lng(location, session, email,city,country)
+        
         return result
     
     async def get_hobbies(self,session: AsyncSession):
