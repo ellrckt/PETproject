@@ -10,7 +10,7 @@ class Profile(BaseModel):
     country: str | None
     about_user: str | None
     user_habits: list | None
-    user_id: int | None
+
 
 class UpdateProfile(BaseModel):
     username: Optional[str] = Field(None)

@@ -12,15 +12,16 @@ from schemas.profiles.profile import Hobbies,UpdateProfile
 router = APIRouter(tags=["profiles"], prefix="/profile")
 
 
-@router.post("/get_user_location")
-async def get_user_location(
+@router.post("/set_user_lat_lng")
+async def set_user_lat_lng(
     session: Annotated[AsyncSession,Depends(db_helper.get_session)],
     user_service: Annotated[UserService,Depends(user_service)],
     schema: UserLocation,
     request: Request,
     )->UserCityCountry:
-
-    result = await user_service.get_user_location(schema,session,request)
+    refresh_token = request.cookies.get("refresh_token")
+    result = await user_service.set_user_lat_lng(schema,session,request)
+    location = await user_service.update_profile(session,refresh_token,UpdateProfile(city=result.city, country = result.country))
     return UserCityCountry(city = result.city, country = result.country)
 
 @router.get("/get_hobbies")
