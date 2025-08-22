@@ -254,6 +254,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             stmt = select(self.model).where(self.model.email==payload["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
+
             stmt = select(UserSession).where(UserSession.user_id == user.id)
             result = await session.execute(stmt)
             old_session = result.scalar_one_or_none()
@@ -279,25 +280,6 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 await session.commit()
                 await session.refresh(new_session) 
                 return new_session
-
-        #     new_session = UserSession(
-        #         user_id=user.id,
-        #         refresh_token= refresh_token,
-        #         exp=datetime.fromtimestamp(payload["exp"]), 
-        #         iat=datetime.fromtimestamp(payload["iat"]),
-        #         is_blacklisted=False)
-
-        #     stmt = select(UserSession).where(UserSession.user_id == user.id)
-        #     result = await session.execute(stmt)
-        #     old_session = result.scalar_one_or_none()
-        #     if old_session is None:
-        #         stmt = insert(UserSession).values(
-        #             user_id=new_session.user_id,
-        #             refresh_token=new_session.refresh_token,
-        #             exp=new_session.exp,iat=new_session.iat,
-        #             is_blacklisted=new_session.is_blacklisted).returning(UserSession)
-        #         result = await session.execute(stmt)
-        #         new_session = result.scalar_one_or_none()
             
            
         #     await session.commit() 
@@ -351,7 +333,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             return access_token
     
         
-    async def get_tokens_with_google(self, email: str,session: AsyncSession,response: Response):
+    async def get_tokens_with_google(self, email: str,session: AsyncSession):
         async with session as session:
             stmt = select(self.model).where(self.model.email == email)
             result = await session.execute(stmt)
@@ -366,15 +348,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             stmt = select(UserSession.refresh_token).where(UserSession.user_id == user_id)
             result = await session.execute(stmt)
             refresh_token = result.scalar_one_or_none()
-            response.set_cookie(
-            key="refresh_token",
-            value=result.refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="Lax",
-            max_age=3600,
-            path="/",
-            )
+            
             return TokenInfo(refresh_token = refresh_token)
 
     async def set_user_location(self,location: dict, session: AsyncSession, email: str,city: str, country: str)->UserCityCountry:

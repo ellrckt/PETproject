@@ -63,8 +63,8 @@ async def login_user(
 @router.get("/get_google_uri")
 def get_google_uri():
     uri = generate_url()
-    # return RedirectResponse(url=uri,status_code = 302)
-    return uri
+    return RedirectResponse(url=uri,status_code = 302)
+    # return uri
     
     
 
@@ -103,8 +103,8 @@ async def get_google_token(
                 "code": code,
             },
             ssl=False,
-        ) as response:
-            res = await response.json()
+        ) as g_response:
+            res = await g_response.json()
             id_token = res["id_token"]
             user_data = jwt.decode(
                 id_token,
@@ -115,14 +115,14 @@ async def get_google_token(
         result = await user_service.get_tokens_with_google(user_data["email"],session)
         session = await user_service.create_user_session(result.refresh_token,session)
         response.set_cookie(
-        key="refresh_token",
-        value=result.refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-        path="/",
-    )
+            key="refresh_token",
+            value=result.refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=3600,
+            path="/",
+        )
 
     return result
 

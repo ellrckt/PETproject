@@ -1,8 +1,7 @@
-
 services:
   db:
     image: postgis/postgis:13-3.3 
-    restart: always
+    restart: always                 
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -30,6 +29,4 @@ services:
   #     - "6379:6379"
 
 volumes:
-  postgres_data:  
-
-
+  postgres_data:
