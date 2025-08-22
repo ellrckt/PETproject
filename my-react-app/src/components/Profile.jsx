@@ -97,8 +97,8 @@ function Profile() {
                                  updateProfile({
                                     username: name,
                                     age: age,
-                                    city: "city",
-                                    country: "country",
+                                    city: city,
+                                    country: country,
                                     about_user: about,
                                     user_habits: userHobbies,
                                  });
