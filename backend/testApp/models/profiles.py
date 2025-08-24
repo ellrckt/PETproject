@@ -3,7 +3,7 @@ from sqlalchemy import String, Integer, LargeBinary, ForeignKey,Boolean, ARRAY
 from typing import List
 
 from models.base import Base
-
+from models.file import UserPhoto
 
 class Profile(Base):
     username: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -14,6 +14,13 @@ class Profile(Base):
     user_habits: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     user: Mapped["User"] = relationship("User", back_populates="profile")
+    
+    profile_photo: Mapped[List["UserPhoto"]] = relationship(
+        "UserPhoto", 
+        back_populates="profile", 
+        cascade="all, delete-orphan"
+    )
+
     # email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     
     # password: Mapped[str] = mapped_column(String(128), nullable=False)

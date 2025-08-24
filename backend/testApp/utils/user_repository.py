@@ -13,12 +13,14 @@ from models.user import User
 from models.session import UserSession
 from models.location import UserLocation
 from models.profiles import Profile
+from models.file import UserPhoto
 from datetime import timedelta,datetime
 from schemas.user.user import UserCityCountry
+from schemas.profiles.profile import Profile as ProfileSchema
+from config import settings
 
 
-ACCESS_TOKEN_TYPE = "access_token"
-REFRESH_TOKEN_TYPE = "refresh_token"
+
 
 
 class AbstractUserCRUDRepository(ABC):
@@ -133,7 +135,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             result = await session.execute(stmt)
             session = result.scalar_one_or_none()
             if session is None:
-                raise HTTPException(status_code = 403, detail = "Refresh token is missing")
+                raise HTTPException(status_code = 401, detail = "Refresh token is missing")
         return True
 
     async def get_hobbies(self,session: AsyncSession):
@@ -156,9 +158,14 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             user_id = user.id
             stmt = select(Profile).where(Profile.user_id == user_id)
             result = await session.execute(stmt)
+            stmt = select(UserPhoto.url).where(UserPhoto.user_id == user_id)
+            photo = await session.execute(stmt)
+            url = photo.scalar_one_or_none()
             profile = result.scalar_one_or_none()
-
-        return profile
+            result = {**profile.__dict__}
+            result = {k: v for k, v in result.items() if not k.startswith('_')}
+            result["profile_photo_url"] = url
+        return result
     
     async def update_profile(self, session: AsyncSession, email: str, profile_data: dict):
         try:
@@ -266,7 +273,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 
                 await session.commit()
                 await session.refresh(old_session) 
-                return old_session
+                return old_session.refresh_token
             else:
                 new_session = UserSession(
                     user_id=user.id,
@@ -279,7 +286,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 session.add(new_session)  
                 await session.commit()
                 await session.refresh(new_session) 
-                return new_session
+                return new_session.refresh_token
             
            
         #     await session.commit() 
@@ -304,7 +311,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                 payload = {
                     "sub": user.username,
                     "email": user.email,
-                    "token_type": REFRESH_TOKEN_TYPE,
+                    "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
                 }
                 refresh_token = encode_jwt(payload)
             else:  
@@ -315,7 +322,6 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def refresh_token(
         self, session: AsyncSession, refresh_token: str
     ):
-        print(refresh_token)
         access_payload = decode_jwt(refresh_token)
         async with session as session:
             stmt = select(self.model).where(self.model.email == access_payload["email"].lower())
@@ -328,7 +334,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
                     raise HTTPException(status_code=403, detail="user innactive")
 
                 payload_to_new_token = access_payload
-                payload_to_new_token["token_type"] = ACCESS_TOKEN_TYPE
+                payload_to_new_token["token_type"] = settings.auth_jwt.ACCESS_TOKEN_TYPE
                 access_token = encode_jwt(payload_to_new_token)
             return access_token
     
@@ -345,11 +351,16 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             if not user.is_active:
                 raise HTTPException(status_code=403, detail="User inactive")
             user_id  = user.id
+
             stmt = select(UserSession.refresh_token).where(UserSession.user_id == user_id)
             result = await session.execute(stmt)
             refresh_token = result.scalar_one_or_none()
-            
+            if refresh_token is None: 
+                raise HTTPException(status_code = 505,detail = "Missed user session")
             return TokenInfo(refresh_token = refresh_token)
+
+    async def get_refresh_token(self,refresh_token: str):
+        return refresh_token
 
     async def set_user_location(self,location: dict, session: AsyncSession, email: str,city: str, country: str)->UserCityCountry:
         async with session as session:
@@ -377,3 +388,95 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
     async def set_user_lat_lng(self,location: dict,session: AsyncSession, email: str, city: str, country: str)-> UserCityCountry:
             result = await self.set_user_location(location,session,email,city,country)
             return result
+    
+    async def get_user_id(self,
+        refresh_token: str,
+        session: AsyncSession
+        ):
+        email = decode_jwt(refresh_token)["email"]
+        async with session as session:
+            stmt = select(self.model).where(self.model.email == email)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            user_id = user.id
+        return user_id
+
+    async def set_user_profile_photo(
+        self,
+        user_id: int,
+        data_dict: dict,
+        session: AsyncSession
+    ):
+        stmt = select(Profile.id).where(Profile.user_id == user_id)
+        try:    
+            async with session as session:
+                result = await session.execute(stmt)
+                profile_id = result.scalar_one_or_none()
+                values = {
+                    "profile_id": profile_id,
+                    "user_id": user_id,
+                    "s3_key": data_dict["s3_key"],
+                    "filename": data_dict["filename"],
+                    "url": data_dict["file_url"]}
+                
+                stmt = select(UserPhoto).where(UserPhoto.user_id == user_id)
+                photo = await session.execute(stmt)
+                user_photo = photo.scalar_one_or_none()
+                if user_photo is None:
+                    stmt = insert(UserPhoto).values(**values).returning(UserPhoto)
+                    result = await session.execute(stmt)
+                    user_photo = result.scalar_one()
+                else:
+                    for field, value in values.items():
+                        if hasattr(user_photo, field):  
+                            setattr(user_photo, field, value)
+                    session.add(user_photo)
+                await session.commit()
+                await session.refresh(user_photo)
+                    
+                return user_photo
+
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to set photo: {str(e)}"
+            )
+
+#  async def update_profile(self, session: AsyncSession, email: str, profile_data: dict):
+#         try:
+#             stmt = select(self.model).where(self.model.email == email)
+#             result = await session.execute(stmt)
+#             user = result.scalar_one_or_none()
+            
+#             if user is None:
+#                 raise HTTPException(
+#                     status_code=404, 
+#                     detail="User not found"
+#                 )
+
+#             stmt = select(Profile).where(Profile.user_id == user.id)
+#             result = await session.execute(stmt)
+#             profile = result.scalar_one_or_none()
+
+#             if profile is None:
+#                 profile_data["user_id"] = user.id
+#                 stmt = insert(Profile).values(**profile_data).returning(Profile)
+#                 result = await session.execute(stmt)
+#                 profile = result.scalar_one()
+#             else:
+#                 for field, value in profile_data.items():
+#                     if hasattr(profile, field):  
+#                         setattr(profile, field, value)
+
+#             await session.commit()
+#             await session.refresh(profile)
+            
+#             return profile
+
+#         except Exception as e:
+#             await session.rollback()
+#             raise HTTPException(
+#                 status_code=400,
+#                 detail=f"Failed to update profile: {str(e)}"
+#             )
