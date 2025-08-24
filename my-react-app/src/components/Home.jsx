@@ -1,7 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-import reqService from "../API/RequestService";
+import React from "react";
 
 import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn";
