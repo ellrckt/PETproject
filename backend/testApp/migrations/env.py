@@ -10,6 +10,7 @@ from models.location import UserLocation
 from models.session import UserSession
 from models.profiles import Profile
 from models.habits import Habits
+from models.file import UserPhoto
 from alembic import context
 
 config = context.config

@@ -2,12 +2,14 @@ from utils.user_repository import AbstractUserCRUDRepository,AbstractUserReposit
 from models.user import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.user.user import UserRegistration, UserLogin, UserUpdate
-from auth.utils import decode_jwt
-# from simplegmail import Gmail
-import random
-import string
-from fastapi import Response ,Request
+from schemas.token.token import TokenInfo
+from auth.utils import decode_jwt, encode_jwt
+from config import settings
+# import random
+# import string
+from fastapi import Response ,Request,UploadFile
 from geopy.geocoders import Nominatim
+from s3.s3_client import s3_client
 
 class UserCRUDService:
 
@@ -46,8 +48,24 @@ class UserCRUDService:
 
 class UserService:
 
-    def __init__(self, user_repo: AbstractUserRepository):
+    def __init__(self, user_repo: AbstractUserRepository)->TokenInfo:
         self.user_repo = user_repo()
+        
+    async def  upload_user_profile_photo(self,refresh_token: str, session: AsyncSession, file: UploadFile,folder: str):
+        user_id = await self.user_repo.get_user_id(refresh_token,session)
+        result = await s3_client.upload_file_from_uploadfile(user_id,file,folder)
+        photo = await self.user_repo.set_user_profile_photo(user_id, result, session)
+        return result
+    
+    async def get_refresh_token(self,user_data: dict):
+        payload = {
+                "sub": user_data.username,
+                "email": user_data.email,
+                "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
+                }
+    
+        refresh_token = encode_jwt(payload)
+        return TokenInfo(refresh_token=refresh_token)
 
     async def check_refresh_token(self,refresh_token: str, session: AsyncSession):
         payload = decode_jwt(refresh_token)
@@ -129,3 +147,5 @@ class UserService:
         result = await self.user_repo.create_profile(session,email,profile_data)
         return result
 
+    # async def set_user_profile_photo(self,session: AsyncSession,data_dict: dict,user_id: int):
+    #     result = await self.user_repo.set_user_profile()

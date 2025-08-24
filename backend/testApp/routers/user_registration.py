@@ -35,7 +35,7 @@ async def register_user(
     age=None, 
     city=None,
     country=None,
-    about_user=None,
+    about_user=None, 
     user_habits=None
 )
     refresh_token = encode_jwt(payload)
