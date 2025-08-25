@@ -2,5 +2,5 @@ from utils.repository import SQLAlchemySessionRepository
 from models.session import UserSession
 
 
-class UserRepository(SQLAlchemySessionRepository):
+class SessionRepository(SQLAlchemySessionRepository):
     model = UserSession

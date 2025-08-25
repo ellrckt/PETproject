@@ -4,26 +4,27 @@ from aiobotocore.session import get_session
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv, find_dotenv
 import os
-from fastapi import UploadFile,HTTPException
+from fastapi import UploadFile, HTTPException
 from typing import Optional
 import uuid
 from datetime import datetime
 
-load_dotenv(find_dotenv())  
+load_dotenv(find_dotenv())
 
-access_key = os.getenv('S3_ACCESS_KEY')
-secret_key = os.getenv('S3_PRIVATE_KEY')
+access_key = os.getenv("S3_ACCESS_KEY")
+secret_key = os.getenv("S3_PRIVATE_KEY")
 
 if not access_key or not secret_key:
     raise ValueError("S3 credentials are not set in environment variables")
 
+
 class S3Client:
     def __init__(
-            self,
-            access_key: str,
-            secret_key: str,
-            endpoint_url: str,
-            bucket_name: str,
+        self,
+        access_key: str,
+        secret_key: str,
+        endpoint_url: str,
+        bucket_name: str,
     ):
         self.config = {
             "aws_access_key_id": access_key,
@@ -44,43 +45,47 @@ class S3Client:
         upload_file: UploadFile,
         folder: Optional[str] = None,
         custom_filename: Optional[str] = None,
-        content_type: Optional[str] = None
+        content_type: Optional[str] = None,
     ) -> dict:
 
         try:
-            filename =  self.generate_image_name(user_id,upload_file.filename)
-            
+            filename = self.generate_image_name(user_id, upload_file.filename)
+
             if folder:
-                folder = folder.strip('/')
+                folder = folder.strip("/")
                 s3_key = f"{folder}/{filename}"
             else:
                 s3_key = filename
-            
+
             content = await upload_file.read()
-            
-            final_content_type = content_type or upload_file.content_type or self._get_content_type(filename)
-            
+
+            final_content_type = (
+                content_type
+                or upload_file.content_type
+                or self._get_content_type(filename)
+            )
+
             async with self.get_client() as client:
                 await client.put_object(
                     Bucket=self.bucket_name,
                     Key=s3_key,
                     Body=content,
                     ContentType=final_content_type,
-                    ACL='public-read'
+                    ACL="public-read",
                 )
-            
+
             file_url = self.get_file_url(s3_key)
-                        
+
             return {
                 "success": True,
                 "file_url": file_url,
-                "filename": upload_file.filename,
+                "filename": filename or upload_file.filename,
                 "content_type": final_content_type,
                 "size": len(content),
                 "folder": folder,
-                "s3_key": s3_key
+                "s3_key": s3_key,
             }
-            
+
         except ClientError as e:
             print(f" S3 error: {e}")
             raise HTTPException(500, f"S3 upload error: {str(e)}")
@@ -90,29 +95,20 @@ class S3Client:
 
     def get_file_url(self, s3_key: str) -> str:
         return f"https://099d0323-2777-45e7-b4b3-aa695bb78731.selstorage.ru/{s3_key}"
-    
+
     def generate_image_name(
         self,
         user_id: int,
         original_filename: str,
         prefix: str = "profile",
     ) -> str:
-       
-        file_ext = os.path.splitext(original_filename)[1].lower()
+        user_folder = f"user_{user_id}"
+        file_ext = os.path.splitext(original_filename)[-1].lower()
         # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         # unique_id = uuid.uuid4().hex[:8]
         # filename = f"{prefix}_{user_id}_{timestamp}_{unique_id}{file_ext}"
-        filename = f"{prefix}{user_id}{file_ext}"
+        filename = f"{prefix}_{user_folder}_{user_id}"
         return filename
-
-
-
-
-
-
-
-
-
 
 
 #     async def delete_file(self, object_name: str):
@@ -136,8 +132,8 @@ class S3Client:
 
 
 s3_client = S3Client(
-        access_key=access_key,
-        secret_key=secret_key,
-        endpoint_url="https://s3.storage.selcloud.ru", 
-        bucket_name="pet1",
-    )
+    access_key=access_key,
+    secret_key=secret_key,
+    endpoint_url="https://s3.storage.selcloud.ru",
+    bucket_name="pet1",
+)

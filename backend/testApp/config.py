@@ -13,10 +13,14 @@ class AuthJWT(BaseSettings):
     algorithm: str = "RS256"
     access_token_expire_minutes: int = 1
     refresh_token_expire_days: int = 3
-    google_client_id: str = "1078824262976-9g570h5ucqnrug3rfi9r98t7o6gqi4a4.apps.googleusercontent.com"
+    google_client_id: str = (
+        "1078824262976-9g570h5ucqnrug3rfi9r98t7o6gqi4a4.apps.googleusercontent.com"
+    )
     google_client_secret: str = "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"
+    google_token_url: str = "https://oauth2.googleapis.com/token"
     ACCESS_TOKEN_TYPE: str = "access_token"
     REFRESH_TOKEN_TYPE: str = "refresh_token"
+
 
 class Settings(BaseSettings):
 

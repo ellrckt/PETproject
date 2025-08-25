@@ -23,18 +23,34 @@ config.set_main_option(
 )
 target_metadata = Base.metadata
 
+
 def include_object(object, name, type_, reflected, compare_to):
     ignore_tables = [
-        "spatial_ref_sys", "geography_columns", "geometry_columns", 
-        "raster_columns", "raster_overviews",
-        "place", "place_lookup", "tiger", "tiger_data",
-        "cousub", "county", "state", "countysub_lookup",
-        "direction_lookup", "secondary_unit_lookup", "state_lookup",
-        "street_type_lookup", "zip_lookup", "zip_state", "zip_state_loc"
+        "spatial_ref_sys",
+        "geography_columns",
+        "geometry_columns",
+        "raster_columns",
+        "raster_overviews",
+        "place",
+        "place_lookup",
+        "tiger",
+        "tiger_data",
+        "cousub",
+        "county",
+        "state",
+        "countysub_lookup",
+        "direction_lookup",
+        "secondary_unit_lookup",
+        "state_lookup",
+        "street_type_lookup",
+        "zip_lookup",
+        "zip_state",
+        "zip_state_loc",
     ]
     if name in ignore_tables:
         return False
     return True
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
@@ -50,17 +66,19 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
-        connection=connection, 
+        connection=connection,
         target_metadata=target_metadata,
         include_object=include_object,  # Добавляем фильтр
         compare_type=True,
-        compare_server_default=True
+        compare_server_default=True,
     )
 
     with context.begin_transaction():
         context.run_migrations()
+
 
 async def run_async_migrations() -> None:
     """Run async migrations."""
@@ -75,9 +93,11 @@ async def run_async_migrations() -> None:
 
     await connectable.dispose()
 
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     asyncio.run(run_async_migrations())
+
 
 if context.is_offline_mode():
     run_migrations_offline()

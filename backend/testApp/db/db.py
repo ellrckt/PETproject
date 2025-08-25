@@ -1,12 +1,10 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
-    AsyncEngine,
     AsyncSession,
     create_async_engine,
 )
 
-from pydantic import BaseModel
 from typing import AsyncGenerator
 import sys
 import os

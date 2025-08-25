@@ -1,5 +1,5 @@
 # from auth.state_storage import state_storage
-from fastapi import APIRouter, Depends, Form, Response, Request,Body
+from fastapi import APIRouter, Depends, Form, Response, Request, Body
 from fastapi.responses import RedirectResponse
 from schemas.user.user import UserLogin
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,32 +12,14 @@ from schemas.token.token import TokenInfo
 from config import settings
 import jwt
 from jwt.exceptions import InvalidTokenError
-from fastapi import HTTPException,status
+from fastapi import HTTPException, status
 from auth.googleauth import generate_url
 import aiohttp
 import jwt
-from auth.utils import decode_jwt
+from auth.utils import decode_jwt, check_jwt
 
 
 router = APIRouter(tags=["login"], prefix="/login")
-
-
-def check_jwt(access_token: str):
-    token = access_token
-    try:
-        payload = jwt.decode(
-            token,
-            settings.auth_jwt.public_key_path.read_text(),
-            algorithms=settings.auth_jwt.algorithm,
-        )
-        return payload
-    except jwt.PyJWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
 
 @router.post("", response_model=TokenInfo)
 async def login_user(
@@ -47,7 +29,7 @@ async def login_user(
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     result = await user_service.login_user(schema, session)
-    session = await user_service.create_user_session(result.refresh_token,session)
+    session = await user_service.create_user_session(result.refresh_token, session)
     response.set_cookie(
         key="refresh_token",
         value=result.refresh_token,
@@ -59,32 +41,31 @@ async def login_user(
     )
 
     return result
- 
+
+
 @router.get("/get_google_uri")
 def get_google_uri():
     uri = generate_url()
-    return RedirectResponse(url=uri,status_code = 302)
+    return RedirectResponse(url=uri, status_code=302)
     # return uri
-    
-    
 
-@router.post("/get_tokens_with_google",response_model = TokenInfo)
+
+@router.post("/get_tokens_with_google", response_model=TokenInfo)
 async def get_tokens_with_google(
     email: str,
-    user_service: Annotated[UserService,Depends(user_service)],
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    user_service: Annotated[UserService, Depends(user_service)],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
-    result = await user_service.get_tokens_with_google(email,session)
+    result = await user_service.get_tokens_with_google(email, session)
     return result
-    
 
 
 @router.post("/get_google_token")
 async def get_google_token(
     response: Response,
     code: Annotated[str, Body()],
-    user_service: Annotated[UserService,Depends(user_service)],
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    user_service: Annotated[UserService, Depends(user_service)],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
     # if state not in state_storage:
     #     raise HTTPException(detail="State is invalid",status_code = 405)
@@ -111,9 +92,9 @@ async def get_google_token(
                 algorithms=["RS256"],
                 options={"verify_signature": False},
             )
-        
-        result = await user_service.get_tokens_with_google(user_data["email"],session)
-        session = await user_service.create_user_session(result.refresh_token,session)
+
+        result = await user_service.get_tokens_with_google(user_data["email"], session)
+        session = await user_service.create_user_session(result.refresh_token, session)
         response.set_cookie(
             key="refresh_token",
             value=result.refresh_token,
@@ -126,32 +107,32 @@ async def get_google_token(
 
     return result
 
+
 @router.get("/check_refresh_token")
 async def check_refresh_token(
-    user_service: Annotated[UserService,Depends(user_service)],
+    user_service: Annotated[UserService, Depends(user_service)],
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
-    request: Request):
+    request: Request,
+):
     refresh_token = request.cookies.get("refresh_token")
-    
+
     if not refresh_token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token is missing"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is missing"
         )
     try:
         payload = decode_jwt(refresh_token)
-        result = await user_service.check_refresh_token(refresh_token,session)
-        
+        result = await user_service.check_refresh_token(refresh_token, session)
+
         return True
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}"
+            detail=f"Token verification failed: {str(e)}",
         )
 
-    
 
 @router.get("/refresh")
 async def refresh_token(
@@ -162,11 +143,8 @@ async def refresh_token(
 ) -> TokenInfo:
     refresh_token = request.cookies.get("refresh_token")
     # access_token = request.cookies.get("access_token")
-    new_access_token = await user_service.refresh_token(
-        session,  refresh_token
-    )
+    new_access_token = await user_service.refresh_token(session, refresh_token)
     return TokenInfo(
         access_token=new_access_token,
         # refresh_token=request.cookies.get("refresh_token"),
     )
-
