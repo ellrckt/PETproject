@@ -10,7 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
-import geoalchemy2 
+import geoalchemy2
 
 # revision identifiers, used by Alembic.
 revision: str = "d9072c929d03"
@@ -79,13 +79,19 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     # Проверяем существует ли индекс
-    index_exists = op.get_bind().execute(
-        sa.text("""
+    index_exists = (
+        op.get_bind()
+        .execute(
+            sa.text(
+                """
             SELECT 1 FROM pg_indexes 
             WHERE indexname = 'idx_user_locations_geom' 
             AND tablename = 'user_locations'
-        """)
-    ).scalar()
+        """
+            )
+        )
+        .scalar()
+    )
 
     if not index_exists:
         op.create_index(
@@ -94,7 +100,7 @@ def upgrade() -> None:
             ["geom"],
             unique=False,
             postgresql_using="gist",
-         )
+        )
     op.create_table(
         "usersession",
         sa.Column("user_id", sa.Integer(), nullable=False),
