@@ -115,6 +115,8 @@ function Profile() {
                            <div className="w-24 h-1 bg-stone-500 mx-auto mt-3 rounded-full"></div>
                         </div>
 
+
+
                         <div className="space-y-6">
                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
                               <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">

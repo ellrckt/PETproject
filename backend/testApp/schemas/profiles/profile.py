@@ -1,15 +1,17 @@
-from pydantic import BaseModel,  Field
+from pydantic import BaseModel, Field
 from fastapi import UploadFile
 from typing import Optional, List
 
+
 class Profile(BaseModel):
 
-    username: str | None
-    age: int | None
-    city: str | None
-    country: str | None
-    about_user: str | None
-    user_habits: list | None
+    username: str | None = None
+    age: int | None = None
+    city: str | None = None
+    country: str | None = None
+    about_user: str | None = None
+    user_habits: list | None = None
+    profile_photo_url: str | None = None
 
 
 class UpdateProfile(BaseModel):
@@ -20,11 +22,13 @@ class UpdateProfile(BaseModel):
     about_user: Optional[str] = Field(None)
     user_habits: Optional[List[str]] = Field(None)
 
+
 class EditProfile(BaseModel):
     profile_img: UploadFile | None = None
     username: str | None = None
     email: str | None = None
     # password: str | None = None
+
 
 class Hobbies(BaseModel):
     name: str

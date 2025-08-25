@@ -1,18 +1,22 @@
-from testapp.dependencies import user_service, user_crud_service
-from schemas.user.user import UserCreation, UserResponse, UserUpdate,UserLocation,UserCityCountry
+from testapp.dependencies import user_crud_service
+from schemas.user.user import (
+    UserCreation,
+    UserResponse,
+    UserUpdate,
+)
 from services.user import UserService
-from typing import Annotated, List
-from fastapi import Depends, APIRouter, Request, Response
+from typing import Annotated
+from fastapi import Depends, APIRouter, Request
 from fastapi.security import HTTPBearer
 from db.db import db_helper
 from sqlalchemy.ext.asyncio import AsyncSession
 from routers.login import check_jwt
-from auth.utils import decode_jwt, encode_jwt
+from auth.utils import decode_jwt
 from fastapi import Request
+
 router = APIRouter(tags=["user_crud"], prefix="/user")
 
 http_bearer = HTTPBearer()
-
 
 @router.post("/user_create")
 async def create_user(
@@ -28,17 +32,18 @@ async def create_user(
         password=user_instance.password,
     )
 
+
 @router.get("/get_user_by_email")
 async def get_user_by_email(
-    user_service: Annotated[UserService,Depends(user_crud_service)],
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    request: Request
+    user_service: Annotated[UserService, Depends(user_crud_service)],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    request: Request,
 ):
-    refresh_token = request.get_cookies("refresh_token")
+    refresh_token = request.cookies.get("refresh_token")
     email = decode_jwt(refresh_token)["email"]
-    print(email)
-    result = await user_crud_service.get_user_by_email(session,email)
-    
+    result = await user_service.get_user_by_email(session, email)
+    return result
+
 
 @router.get("/get_users")
 async def get_all_users(
