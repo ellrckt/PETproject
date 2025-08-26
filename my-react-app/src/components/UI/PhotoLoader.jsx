@@ -1,11 +1,24 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 
-function PhotoLoader({ placeholder = "photo-upload" }) {
-   const [photo, setPhoto] = useState(null);
+function PhotoLoader({ placeholder, state, setState }) {
+   console.log(state);
+   const [photo, setPhoto] = useState(state);
+
+   useEffect(() => {
+      if (typeof state === "string" && state.startsWith("http")) {
+         setPhoto(state);
+      } else if (state instanceof File) {
+         const url = URL.createObjectURL(state);
+         setPhoto(url);
+         // clean up function
+         return () => URL.revokeObjectURL(url);
+      }
+   }, [state]);
 
    function handleImageUpload(e) {
       const image = e.target.files[0];
+      setState(image);
       if (image) {
          if (photo) {
             URL.revokeObjectURL(photo);
@@ -33,7 +46,7 @@ function PhotoLoader({ placeholder = "photo-upload" }) {
                   <span className="text-sm">Upload</span>
                </div>
             )}
-            
+
             {photo && (
                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                   <Camera className="w-10 h-10 text-white" />

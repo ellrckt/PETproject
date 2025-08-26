@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Button from "./UI/Button";
 import Input from "./UI/Input";
@@ -15,6 +15,7 @@ function Profile() {
    const [country, setCountry] = useState("");
    const [city, setCity] = useState("");
    const [userHobbies, setUserHobbies] = useState([]);
+   const [image, setImage] = useState("");
 
    const [hobbiesList, setHobbiesList] = useState([]);
    const [edit, setEdit] = useState(false);
@@ -42,18 +43,25 @@ function Profile() {
          setCountry(res.data.country || "");
          setAbout(res.data.about_user || "");
          setUserHobbies(res.data.user_habits || []);
+         setImage(res.data.profile_photo_url || "");
+         console.log(res.data.profile_photo_url);
       } catch (error) {
          console.log(error);
       }
    };
 
+   const uploadUserImage = async (image) => {
+      const formData = new FormData();
+      formData.append('file', image);
+      await reqService.post('/profile/upload_user_profile_photo', formData);
+   }
+
    return (
       <div className="min-h-screen bg-gray-50">
-         <NavBar />
          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md shadow-stone-300 p-8 mt-10">
             <div className="flex flex-col md:flex-row gap-8">
                <div className="w-full md:w-1/3 flex flex-col items-center">
-                  <PhotoLoader placeholder={"Upload photo"} />
+                  <PhotoLoader placeholder={"Upload photo"} state={image} setState={setImage}/>
                </div>
 
                <div className="w-full md:w-2/3">
@@ -100,6 +108,7 @@ function Profile() {
                                     about_user: about,
                                     user_habits: userHobbies,
                                  });
+                                 if (typeof image !== 'string') uploadUserImage(image);
                               }}
                            >
                               Save

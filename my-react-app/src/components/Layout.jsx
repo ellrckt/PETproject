@@ -1,21 +1,19 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from "react-router-dom";
 
-import NavBar from './NavBar';
+import NavBar from "./NavBar";
 
 function Layout() {
    return (
-      <div className='app'>
+      <div className="app">
          <header>
             <NavBar />
          </header>
 
          <main>
-            <Outlet/>
+            <Outlet />
          </main>
 
-         <footer>
-            
-         </footer>
+         {/* <footer></footer> */}
       </div>
    );
 }

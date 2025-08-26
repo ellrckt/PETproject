@@ -1,5 +1,3 @@
-import React from "react";
-
 import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn";
 import Loader from "./UI/Loader";
@@ -17,7 +15,7 @@ function Home() {
    } else {
       return (
          <div>
-            <NavBar/>
+            Welcome to homepage!
          </div>
       );
    }
