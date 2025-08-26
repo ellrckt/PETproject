@@ -8,18 +8,20 @@ class UserCreation(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserLocation(BaseModel):
     model_config = ConfigDict(strict=True)
     lat: float
     lng: float
 
+
 class UserCityCountry(BaseModel):
     country: str
     city: str
 
+
 class GetUser(BaseModel):
     pass
-
 
 
 class UserResponse(UserCreation):
@@ -48,7 +50,7 @@ class UserUpdate(BaseModel):
 
 
 # class UserEmailConffirmation(BaseModel):
-    
+
 #     confirmation_code: str
 #     typed_code: str
 

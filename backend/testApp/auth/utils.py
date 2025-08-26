@@ -3,9 +3,38 @@ from config import settings
 import bcrypt
 from datetime import timedelta, datetime
 from fastapi import HTTPException
+from typing import Literal
+from config import settings
 
-ACCESS_TOKEN_TYPE = "access_token"
-REFRESH_TOKEN_TYPE = "refresh_token"
+def check_jwt(access_token: str):
+    token = access_token
+    try:
+        payload = jwt.decode(
+            token,
+            settings.auth_jwt.public_key_path.read_text(),
+            algorithms=settings.auth_jwt.algorithm,
+        )
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+def create_token(
+    username: str,
+    email: str,
+    token_type: Literal["access", "refresh"],
+) -> str:
+
+    payload = {
+        "sub": username,
+        "email": email,
+        "token_type": settings.auth_jwt.ACCESS_TOKEN_TYPE if token_type == "access" else settings.auth_jwt.REFRESH_TOKEN_TYPE,
+    }
+    
+    return encode_jwt(payload)
 
 
 def encode_jwt(
@@ -16,7 +45,7 @@ def encode_jwt(
     expire_days: int = settings.auth_jwt.refresh_token_expire_days,
     expire_timedelta: timedelta | None = None,
 ):
-    if payload["token_type"] == REFRESH_TOKEN_TYPE:
+    if payload["token_type"] ==  settings.auth_jwt.REFRESH_TOKEN_TYPE:
         to_encode = payload.copy()
         now = datetime.utcnow()
         if expire_timedelta:
@@ -29,7 +58,7 @@ def encode_jwt(
             private_key,
             algorithm=algorithm,
         )
-    if payload["token_type"] == ACCESS_TOKEN_TYPE:
+    if payload["token_type"] ==  settings.auth_jwt.ACCESS_TOKEN_TYPE:
         to_encode = payload.copy()
         now = datetime.utcnow()
         if expire_timedelta:
@@ -54,7 +83,7 @@ def decode_jwt(
         decoded_jwt = jwt.decode(
             token,
             public_key,
-            algorithms=[algorithm], 
+            algorithms=[algorithm],
         )
         return decoded_jwt
     except jwt.ExpiredSignatureError:
