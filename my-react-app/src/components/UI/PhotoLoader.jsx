@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Camera } from "lucide-react";
 
 function PhotoLoader({ placeholder, state, setState }) {
-   console.log(state);
    const [photo, setPhoto] = useState(state);
 
    useEffect(() => {

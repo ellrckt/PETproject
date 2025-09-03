@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/helpers": "^7.28.2",
     "@babel/runtime": "^7.28.2",
+    "@reduxjs/toolkit": "^2.9.0",
     "autoprefixer": "^10.4.20",
     "axios": "^1.11.0",
     "cra-template": "1.2.0",
