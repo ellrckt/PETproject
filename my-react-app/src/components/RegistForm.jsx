@@ -29,7 +29,7 @@ function RegistForm() {
       if (typeof res === 'string') {
          setError(res);
       } else {
-         await reqService.post('/profile/set_user_lat_lng', coords);
+         await reqService.post('/user_location/set_user_lat_lng', coords);
          // user coords are in db, localstorage - alternative
          //localStorage.setItem('location', JSON.stringify(userLocation.data));
          nav("/home");

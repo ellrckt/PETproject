@@ -44,7 +44,6 @@ function Profile() {
          setAbout(res.data.about_user || "");
          setUserHobbies(res.data.user_habits || []);
          setImage(res.data.profile_photo_url || "");
-         console.log(res.data.profile_photo_url);
       } catch (error) {
          console.log(error);
       }
