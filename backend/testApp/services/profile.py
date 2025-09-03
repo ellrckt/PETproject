@@ -9,6 +9,7 @@ from schemas.token.token import TokenInfo
 from utils.profile_repository import AbstractProfileRepository
 from s3.s3_client import s3_client
 from repository.auth import AuthRepository
+from redis.redis_profile_service import RedisJSONProfileService
 
 class ProfileService:
 
@@ -31,11 +32,14 @@ class ProfileService:
 
         return result
 
-    async def get_user_profile(self, session: AsyncSession, refresh_token: str):
+    async def get_user_profile(self,
+        session: AsyncSession,
+        redis_service: RedisJSONProfileService,
+        refresh_token: str):
 
         payload = decode_jwt(refresh_token)
         email = payload["email"]
-
+        redis_service.get_profile()
         result = await self.profile_repository.get_user_profile(session, email)
 
         return result
@@ -56,15 +60,16 @@ class ProfileService:
         return result
 
     async def create_profile(
-        self, session: AsyncSession, 
+        self,
+        session: AsyncSession, 
         refresh_token: str, 
         schema: dict
     ):
         profile_data = schema.model_dump()
         payload = decode_jwt(refresh_token)
         email = payload["email"]
-
         result = await self.profile_repository.create_profile(session, email, profile_data)
+
         
         return result
 
