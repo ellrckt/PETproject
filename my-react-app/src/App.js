@@ -1,22 +1,8 @@
-import React from 'react';
-import {BrowserRouter, Route, Routes} from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
-import ProfilePage from './pages/ProfilePage';
-import SignupPage from './pages/SignupPage';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes/router';
 
 function App() {
-   return (
-      <BrowserRouter>
-         <Routes>
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="*" element={<HomePage />} />
-         </Routes>
-      </BrowserRouter>
-   );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

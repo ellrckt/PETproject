@@ -1,42 +1,65 @@
-import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from "react";
+import { Camera } from "lucide-react";
 
-function PhotoLoader({placeholder}) {
-   const [photo, setPhoto] = useState(null);
+function PhotoLoader({ placeholder, state, setState }) {
+   const [photo, setPhoto] = useState(state);
 
-   function handleImageUpload (e) {
+   useEffect(() => {
+      if (typeof state === "string" && state.startsWith("http")) {
+         setPhoto(state);
+      } else if (state instanceof File) {
+         const url = URL.createObjectURL(state);
+         setPhoto(url);
+         // clean up function
+         return () => URL.revokeObjectURL(url);
+      }
+   }, [state]);
+
+   function handleImageUpload(e) {
       const image = e.target.files[0];
+      setState(image);
       if (image) {
-         //creates special url for uploaded file
+         if (photo) {
+            URL.revokeObjectURL(photo);
+         }
          const url = URL.createObjectURL(image);
          setPhoto(url);
       }
    }
 
    return (
-      <div className="mb-6">
+      <div className="flex flex-col items-center justify-center h-full">
+         <label
+            htmlFor={placeholder}
+            className="relative flex items-center justify-center w-52 h-52 rounded-full border-2 border-dashed border-stone-300 cursor-pointer hover:border-stone-400 transition-colors bg-stone-50 group"
+         >
+            {photo ? (
+               <img
+                  src={photo}
+                  alt="Profile preview"
+                  className="w-full h-full rounded-full object-cover"
+               />
+            ) : (
+               <div className="flex flex-col items-center justify-center text-stone-400 group-hover:text-stone-600 transition-colors">
+                  <Camera className="w-12 h-12 mb-2" />
+                  <span className="text-sm">Upload</span>
+               </div>
+            )}
+
+            {photo && (
+               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-10 h-10 text-white" />
+               </div>
+            )}
+         </label>
+
          <input
-            className="block w-full text-sm text-gray-500
-                     file:mr-4 file:py-2 file:px-4
-                     file:rounded-md file:border-0
-                     file:text-sm file:font-medium
-                     file:bg-stone-50 file:text-stone-700
-                     hover:file:bg-stone-100
-                     cursor-pointer"
             id={placeholder}
-            type='file'
-            accept=".png,.jpg,.jpeg"
+            type="file"
+            className="hidden"
+            accept=".png,.jpg,.jpeg,.webp"
             onChange={handleImageUpload}
          />
-         {photo && (
-            <div className="mt-4 flex justify-center">
-               <img 
-                  src={photo} 
-                  alt="Profile preview" 
-                  className="w-40 h-40 rounded-full object-cover border-2 border-stone-200"
-               />
-            </div>
-         )}
       </div>
    );
 }

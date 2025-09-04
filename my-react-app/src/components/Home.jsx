@@ -1,8 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
-import reqService from "../API/RequestService";
-
 import NavBar from "../components/NavBar";
 import NotLoggedIn from "../components/NotLoggegIn";
 import Loader from "./UI/Loader";
@@ -20,7 +15,7 @@ function Home() {
    } else {
       return (
          <div>
-            <NavBar/>
+            Welcome to homepage!
          </div>
       );
    }
