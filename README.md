@@ -4,8 +4,11 @@
 ### 🛠️ Developers
 
 **Daniil Zubrik** - Backend Developer  
-[![Email](https://img.shields.io/badge/Email-maria.ivanova@petproject.com-blue?style=flat&logo=gmail)](mailto:maria.ivanova@petproject.com)
-[![GitHub](https://img.shields.io/badge/GitHub-mariaiva-181717?style=flat&logo
+[![Email](https://img.shields.io/badge/Email-daniilzubrik@gmail.com-blue?style=flat&logo=gmail)](mailto:daniilzubrik@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-ellrckt-181717?style=flat&logo=github)](https://github.com/ellrckt)
+[![Telegram](https://img.shields.io/badge/Telegram-@MLKS6-26A5E4?style=flat&logo=telegram)](https://t.me/MLKS6)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-daniilzubrik-0A66C2?style=flat&logo=linkedin)](https://linkedin.com/in/alexeypetrov)
+
 ## 📋 Description
 ### PetProject is a web application with a monolithic architecture, currently implementing an authentication system, user profile management, and geolocation functionality. The project is built on microservice-oriented principles using modern technologies and cloud infrastructure.
 
