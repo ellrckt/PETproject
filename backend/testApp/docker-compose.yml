@@ -10,6 +10,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432" 
+    networks:
+      - pet-network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: always
@@ -20,13 +23,40 @@ services:
       - "8080:80"
     depends_on:
       - db
+    networks:
+      - pet-network
 
-  # Раскомментируйте, если нужен Redis
-  # redis:
-  #   image: redis:latest
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    # environment:
+    #   - REDIS_PASSWORD=admin
+    volumes:
+      - redis_data:/data
+    networks:
+      - pet-network
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    depends_on: 
+      - redis
+    restart: always
+    volumes:
+      - redis_insight_data:/data
+    ports: 
+      - "5540:5540"
+    networks: 
+      - pet-network
+
+networks:
+  pet-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+  redis_data:
+  redis_insight_data:

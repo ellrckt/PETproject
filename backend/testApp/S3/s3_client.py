@@ -53,7 +53,7 @@ class S3Client:
 
             if folder:
                 folder = folder.strip("/")
-                s3_key = f"{folder}/{filename}"
+                s3_key = f"{folder}/user_{user_id}/{filename}"
             else:
                 s3_key = filename
 
@@ -102,33 +102,32 @@ class S3Client:
         original_filename: str,
         prefix: str = "profile",
     ) -> str:
-        user_folder = f"user_{user_id}"
         file_ext = os.path.splitext(original_filename)[-1].lower()
         # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         # unique_id = uuid.uuid4().hex[:8]
         # filename = f"{prefix}_{user_id}_{timestamp}_{unique_id}{file_ext}"
-        filename = f"{prefix}_{user_folder}_{user_id}"
+        filename = f"{prefix}_{user_id}"
         return filename
 
 
-#     async def delete_file(self, object_name: str):
-#         try:
-#             async with self.get_client() as client:
-#                 await client.delete_object(Bucket=self.bucket_name, Key=object_name)
-#                 print(f"File {object_name} deleted from {self.bucket_name}")
-#         except ClientError as e:
-#             print(f"Error deleting file: {e}")
+    async def delete_file(self, s3_key: str,):
+        try:
+            async with self.get_client() as client:
+                await client.delete_object(Bucket=self.bucket_name, Key=s3_key)
+                print(f"File {s3_key} deleted from {self.bucket_name}")
+        except ClientError as e:
+            print(f"Error deleting file: {e}")
 
-#     async def get_file(self, object_name: str, destination_path: str):
-#         try:
-#             async with self.get_client() as client:
-#                 response = await client.get_object(Bucket=self.bucket_name, Key=object_name)
-#                 data = await response["Body"].read()
-#                 with open(destination_path, "wb") as file:
-#                     file.write(data)
-#                 print(f"File {object_name} downloaded to {destination_path}")
-#         except ClientError as e:
-#             print(f"Error downloading file: {e}")
+    async def get_file(self, object_name: str, destination_path: str):
+        try:
+            async with self.get_client() as client:
+                response = await client.get_object(Bucket=self.bucket_name, Key=object_name)
+                data = await response["Body"].read()
+                with open(destination_path, "wb") as file:
+                    file.write(data)
+                print(f"File {object_name} downloaded to {destination_path}")
+        except ClientError as e:
+            print(f"Error downloading file: {e}")
 
 
 s3_client = S3Client(

@@ -10,7 +10,7 @@ from auth.utils import hash_password, validate_password, encode_jwt, decode_jwt
 from schemas.token.token import TokenInfo
 from models.user import User
 from models.session import UserSession
-from config import settings
+from config import settings 
 
 
 class AbstractAuthRepository(ABC):
@@ -140,6 +140,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     "sub": user.username,
                     "email": user.email,
                     "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
+                    "user_id": user.id
                 }
                 refresh_token = encode_jwt(payload)
             else:

@@ -26,12 +26,14 @@ def create_token(
     username: str,
     email: str,
     token_type: Literal["access", "refresh"],
+    user_id: int
 ) -> str:
 
     payload = {
         "sub": username,
         "email": email,
         "token_type": settings.auth_jwt.ACCESS_TOKEN_TYPE if token_type == "access" else settings.auth_jwt.REFRESH_TOKEN_TYPE,
+        "user_id": user_id
     }
     
     return encode_jwt(payload)

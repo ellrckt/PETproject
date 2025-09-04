@@ -13,6 +13,8 @@ from schemas.token.token import TokenInfo
 from schemas.user.user import UserLogin, UserRegistration
 from utils.auth_repository import AbstractAuthRepository
 from services.profile import ProfileService
+from redis_service.redis_profile_service import RedisJSONProfileService
+
 class AuthService:
 
     def __init__(self, auth_repository: AbstractAuthRepository) -> TokenInfo:
@@ -25,6 +27,7 @@ class AuthService:
             "sub": user_data.username,
             "email": user_data.email,
             "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
+            "user_id": user_data.id
         }
 
         refresh_token = encode_jwt(payload)
@@ -42,7 +45,8 @@ class AuthService:
         self,
         schema: UserRegistration, 
         session: AsyncSession,
-        profile_service: ProfileService
+        profile_service: ProfileService,
+        redis_service: RedisJSONProfileService,
     ) -> Tuple[str, str]:
         
         
@@ -50,11 +54,11 @@ class AuthService:
         user_data = schema.model_dump()
         result = await self.auth_repository.register_user(user_data, session)
 
-        refresh_token = create_token(result.username, result.email, "refresh")
-        access_token = create_token(result.username, result.email, "access")
+        refresh_token = create_token(result.username, result.email, "refresh", result.id)
+        access_token = create_token(result.username, result.email, "access", result.id)
 
         temporary_profile = UpdateProfile(username=result.username)
-        profile = await profile_service.update_profile(session, refresh_token, temporary_profile)
+        profile = await profile_service.update_profile(session, refresh_token, temporary_profile, redis_service)
 
         user_session = await self.create_user_session(refresh_token, session)
 

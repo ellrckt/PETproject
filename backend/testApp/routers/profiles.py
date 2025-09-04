@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request
 from schemas.profiles.profile import UpdateProfile
 from services.auth import AuthService
-from testapp.dependencies import auth_service
-
+from testapp.dependencies import auth_service, redis_json_service
+from redis_service.redis_profile_service import RedisJSONProfileService
 FOLDER = "profiles_photo"
 
 router = APIRouter(tags=["profiles"], prefix="/profile")
@@ -20,9 +20,11 @@ async def get_user_profile(
     request: Request,
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.get_user_profile(session, refresh_token)
+    result = await profile_service.get_user_profile(session,redis_service, refresh_token)
+    
 
     return result
 
@@ -33,9 +35,10 @@ async def update_profile(
     schema: UpdateProfile,
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.update_profile(session, refresh_token, schema)
+    result = await profile_service.update_profile(session, refresh_token, schema, redis_service)
 
     return result
 
