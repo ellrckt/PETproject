@@ -9,10 +9,10 @@ from services.user import UserService, UserCRUDService
 from services.auth import AuthService
 from services.profile import ProfileService
 
-from redis.redis_profile_service import redis_json_service
+from redis_service.redis_profile_service import RedisJSONProfileService
 
-def redis_json_service():
-    return redis_json_service 
+def redis_json_service()->RedisJSONProfileService:
+    return RedisJSONProfileService()
 
 def location_service():
     return LocationService(LocationRepository)

@@ -12,8 +12,8 @@ from schemas.token.token import TokenInfo
 from schemas.user.user import UserLogin, UserRegistration
 from services.auth import AuthService
 from services.profile import ProfileService
-from testapp.dependencies import auth_service,profile_service
-
+from testapp.dependencies import auth_service,profile_service,redis_json_service
+from redis_service.redis_profile_service import RedisJSONProfileService
 registration_router = APIRouter(tags=["registration"], prefix="/registration")
 
 @registration_router.post("", response_model=TokenInfo)
@@ -21,12 +21,13 @@ async def register_user(
     schema: UserRegistration,
     auth_service: Annotated[AuthService, Depends(auth_service)],
     profile_service: Annotated[ProfileService,Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService,Depends(redis_json_service)],
     response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
 
     try:
-        refresh_token, access_token = await auth_service.register_user(schema, session, profile_service)
+        refresh_token, access_token = await auth_service.register_user(schema, session, profile_service, redis_service)
         
         response.set_cookie(
             key="refresh_token",
