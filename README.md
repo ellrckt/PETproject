@@ -10,7 +10,7 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-daniilzubrik-0A66C2?style=flat&logo=linkedin)](https://www.linkedin.com/in/daniil-zubrik-ba007b290)
 
 ## 📋 Description
-### PetProject is a web application with a monolithic architecture, currently implementing an authentication system, user profile management, and geolocation functionality. The project is built on microservice-oriented principles using modern technologies and cloud infrastructure.
+### PetProject is a web application with a monolithic architecture, currently implementing an authentication system, user profile,subscriptions management, and geolocation functionality.(other feautures as notifications,posts are in process) The project is built on microservice-oriented principles using modern technologies and cloud infrastructure.
 
 ## 🏗️ Technology Stack
 # Backend
