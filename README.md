@@ -15,6 +15,15 @@
 ### PetProject is a web application with a monolithic architecture, currently implementing an authentication system, user profile,subscriptions management, and geolocation functionality.(other feautures as notifications,posts are in process).
 
 ## 🏗️ Technology Stack
+# FrontEnd
+- React
+- TypeScript
+- WebSocket
+- Redux Toolkit
+- Tailwind CSS
+- Vite
+  
+
 # Backend
 Python with FastAPI framework
 
@@ -135,4 +144,29 @@ Splitting into microservices as load grows
 Creating posts, subscriptions, likes, etc. (in progress...)
 
 # Frontend
-...
+
+
+
+# AI Tools
+
+## Smart Replies & Autocomplete
+AI-powered response suggestions that analyze incoming messages and provide relevant quick replies, speeding up communication and simplifying responses during busy periods.
+
+Integrates with external AI model 
+
+Analyzes message context and conversation history
+
+Generates 3 most relevant response options
+
+## Real-time Translation & English-Russian Support
+Seamless real-time message translation that breaks down language barriers and enables smooth cross-cultural communication.
+
+How It Works:
+
+Detects message language automatically
+
+Translates messages to user's preferred language
+
+Preserves original message for reference
+
+Handles slang and informal expressions
