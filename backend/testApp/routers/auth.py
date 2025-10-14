@@ -27,7 +27,7 @@ async def register_user(
 ) -> TokenInfo:
 
     try:
-        refresh_token, access_token = await auth_service.register_user(schema, session, profile_service, redis_service)
+        refresh_token, access_token, id = await auth_service.register_user(schema, session, profile_service, redis_service)
         
         response.set_cookie(
             key="refresh_token",
@@ -39,7 +39,7 @@ async def register_user(
             path="/",
         )
         
-        return TokenInfo(refresh_token=refresh_token, access_token=access_token)
+        return TokenInfo(refresh_token=refresh_token, access_token=access_token, id=id)
         
     except Exception as e:
         await session.rollback()
