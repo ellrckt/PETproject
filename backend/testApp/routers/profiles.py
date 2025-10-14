@@ -15,19 +15,21 @@ FOLDER = "profiles_photo"
 router = APIRouter(tags=["profiles"], prefix="/profile")
 
 
-@router.get("/get_user_profile")
+@router.get("/profiles/{user_id}")
 async def get_user_profile(
+    user_id: int,
     request: Request,
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
     redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.get_user_profile(session,redis_service, refresh_token)
+    result = await profile_service.get_user_profile(user_id, session, redis_service, refresh_token)
     
 
     return result
 
+# @router.get("/get_user_profiles")
 
 @router.patch("/update_profile")
 async def update_profile(
@@ -67,4 +69,14 @@ async def upload_user_profile_photo(
     refresh_token = request.cookies.get("refresh_token")
     result = await profile_service.upload_user_profile_photo(auth_service, refresh_token, session, file, FOLDER)
 
+    return result
+
+@router.get("/get_habits")
+async def get_habits(
+    request: Request,
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    profile_service: Annotated[ProfileService, Depends(profile_service)],
+):
+    refresh_token = request.cookies.get("refresh_token")
+    result = await profile_service.get_habits(refresh_token,session)
     return result

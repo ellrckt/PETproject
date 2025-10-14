@@ -14,6 +14,8 @@ from routers.login import check_jwt
 from auth.utils import decode_jwt
 from fastapi import Request
 
+from testapp.dependencies import user_service
+
 router = APIRouter(tags=["user_crud"], prefix="/user")
 
 http_bearer = HTTPBearer()
@@ -79,3 +81,14 @@ async def update_user(
     payload = decode_jwt(request.cookies.get("access_token"))
     result = await user_service.update(schema, session, payload)
     return result
+
+@router.get("/get_current_user")
+async def get_current_user(
+    request: Request,
+    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
+    user_service: Annotated[UserService,Depends(user_service)]
+    ):
+    refresh_token = request.cookies.get("refresh_token")
+    result = await user_service.get_current_user(session, refresh_token)
+    return result
+    

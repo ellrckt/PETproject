@@ -52,6 +52,32 @@ services:
     networks: 
       - pet-network
 
+  notifications-db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: notifications
+      POSTGRES_USER: notif_user
+      POSTGRES_PASSWORD: notif_pass
+    networks:
+      - pet-network
+
+  # notifications:
+  #   depends_on:
+  #     - notifications-db
+  #   environment:
+  #     DATABASE_URL: postgresql://notif_user:notif_pass@notifications-db:5432/notifications
+  
+  # Message Broker (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   
+      - "15672:15672" 
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - pet-network
+
 networks:
   pet-network:
     driver: bridge
@@ -60,3 +86,4 @@ volumes:
   postgres_data:
   redis_data:
   redis_insight_data:
+  rabbitmq_data:

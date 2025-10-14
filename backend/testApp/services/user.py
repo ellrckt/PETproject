@@ -4,7 +4,7 @@ from fastapi import Request, UploadFile
 from geopy.geocoders import Nominatim
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.utils import create_token, decode_jwt, encode_jwt
+from auth.utils import decode_jwt
 from config import settings
 from models.user import User
 from schemas.profiles.profile import UpdateProfile
@@ -48,8 +48,16 @@ class UserCRUDService:
 
 class UserService:
 
-    def __init__(self, user_repository: AbstractUserRepository) -> TokenInfo:
+    def __init__(self, user_repository: AbstractUserRepository):
 
         self.user_repository = user_repository()
+
+    async def get_current_user(self,session: AsyncSession, refresh_token: str):
+
+        payload = decode_jwt(refresh_token)
+        user_id = payload["user_id"]
+        result = await self.user_repository.get_current_user(session,user_id)
+        return result
+
 
    

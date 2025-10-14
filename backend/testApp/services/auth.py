@@ -47,7 +47,7 @@ class AuthService:
         session: AsyncSession,
         profile_service: ProfileService,
         redis_service: RedisJSONProfileService,
-    ) -> Tuple[str, str]:
+    ):
         
         
             

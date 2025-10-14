@@ -2,6 +2,7 @@ from routers.user import router as user_router
 from routers.auth import registration_router as user_registration_router, login_router
 from routers.profiles import router as profile_router
 from routers.location import router as location_router
+from routers.subscription import router as subscription_router
 
 from fastapi.middleware.cors import CORSMiddleware
 from start_app import start_app
@@ -30,3 +31,4 @@ app.include_router(user_registration_router)
 app.include_router(login_router)
 app.include_router(profile_router)
 app.include_router(location_router)
+app.include_router(subscription_router)

@@ -21,7 +21,11 @@ class UserCityCountry(BaseModel):
 
 
 class GetUser(BaseModel):
-    pass
+    user_id: int
+    email: str
+    subscriptions_count: int
+    subscribers_count: int
+    username: str
 
 
 class UserResponse(UserCreation):
