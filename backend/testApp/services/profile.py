@@ -1,5 +1,5 @@
-
-from fastapi import UploadFile, Request
+from typing import List
+from fastapi import UploadFile, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import decode_jwt
@@ -13,7 +13,7 @@ from redis_service.redis_profile_service import RedisJSONProfileService
 
 class ProfileService:
 
-    def __init__(self, profile_repository: AbstractProfileRepository) -> TokenInfo:
+    def __init__(self, profile_repository: AbstractProfileRepository):
 
         self.profile_repository = profile_repository()
 
@@ -32,24 +32,62 @@ class ProfileService:
 
         return result
 
-    async def get_user_profile(self,
+    async def get_user_profile(
+        self,
+        user_id: int,
         session: AsyncSession,
         redis_service: RedisJSONProfileService,
         refresh_token: str,
         ):
 
-        payload = decode_jwt(refresh_token)
-        email = payload["email"]
-        user_id = payload["user_id"]
+        # payload = decode_jwt(refresh_token)
+        # email = payload["email"]
+        # user_id = payload["user_id"]
         
         redis_result = await redis_service.get_profile(user_id)
         if redis_result is None:
-            result = await self.profile_repository.get_user_profile(session, email)
+            # result = await self.profile_repository.get_user_profile(session, email)
+            result = await self.profile_repository.get_user_profile(session, user_id)
+
             profile = await redis_service.create_profile(user_id,result)
             return result
         else:
             return redis_result
 
+    async def get_user_profiles(
+            self,
+            user_ids: List[int],
+            redis_service: RedisJSONProfileService,
+            session: AsyncSession
+            ):
+        try:
+            redis_results = await redis_service.get_profiles_pipeline(user_ids)
+            print(f"REDIS {redis_results}")
+            missing_user_ids = []
+            results_map = {}
+            
+            for user_id, redis_result in zip(user_ids, redis_results):
+                if redis_result is None:
+                    missing_user_ids.append(user_id)
+                else:
+                    results_map[user_id] = redis_result
+            if missing_user_ids:
+                db_results = await self.profile_repository.get_user_profiles(
+                    missing_user_ids, session
+                )
+                
+                if db_results:
+                    await redis_service.create_profiles_pipeline(db_results)
+                    results_map.update(db_results)
+                
+                for user_id in missing_user_ids:
+                    if user_id not in results_map:
+                        results_map[user_id] = None
+            
+            return [results_map.get(user_id) for user_id in user_ids]
+        except Exception as e:
+            return await self.profile_repository.get_user_profiles(user_ids, session)
+        
 
     async def update_profile(
         self,
@@ -65,9 +103,19 @@ class ProfileService:
         user_id = payload["user_id"]
         
         result = await self.profile_repository.update_profile(session, email, profile_data)
-        await redis_service.update_profile(user_id,profile_data)
-
-        return result
+        try:
+            redis_profile = await redis_service.update_profile(user_id,profile_data)
+            if not redis_profile:
+                user_data = result.__dict__.copy()
+                user_data.pop('_sa_instance_state', None)
+                redis_profile = await redis_service.create_profile(user_id,user_data)
+            return result
+        
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(
+                status_code=400, detail=f"Failed to update profile: {str(e)}"
+            )
 
     async def create_profile(
         self,
@@ -83,3 +131,10 @@ class ProfileService:
         
         return result
 
+    async def get_habits(
+            self,
+            refresh_token: str,
+            session: AsyncSession):
+        payload = decode_jwt(refresh_token)
+        result = await self.profile_repository.get_habits(session)
+        return result

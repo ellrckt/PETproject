@@ -4,9 +4,11 @@ from abc import ABC, abstractmethod
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
+from typing import List
 
 from models.user import User
 from models.profiles import Profile
+from models.habits import Habits
 from models.file import UserPhoto
 from schemas.profiles.profile import Profile as ProfileSchema
 
@@ -22,14 +24,14 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
 
     model = Profile
 
-    async def get_user_profile(self, session: AsyncSession, email: str):
-        stmt = select(User).where(User.email == email)
+    async def get_user_profile(self, session: AsyncSession, user_id: int):
+        # stmt = select(User).where(User.email == email)
         async with session as session:
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-            if user is None:
-                raise HTTPException(status_code=400, detail="Not such user")
-            user_id = user.id
+            # result = await session.execute(stmt)
+            # user = result.scalar_one_or_none()
+            # if user is None:
+            #     raise HTTPException(status_code=400, detail="Not such user")
+            # user_id = user.id
             stmt = select(self.model).where(self.model.user_id == user_id)
             result = await session.execute(stmt)
             stmt = select(UserPhoto.url).where(UserPhoto.user_id == user_id)
@@ -41,6 +43,13 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             result["profile_photo_url"] = url
         return result
 
+    async def get_user_profiles(self,user_ids: int,session: AsyncSession)->List[Profile]:
+        async with session.begin():
+            stmt = select(self.model).where(self.model.user_id.in_(user_ids))
+            result = await session.execute(stmt)
+            user_profiles = result.scalars().all()
+            return user_profiles
+ 
     async def update_profile(
         self, session: AsyncSession, email: str, profile_data: dict
     ):
@@ -135,3 +144,10 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             raise HTTPException(
                 status_code=400, detail=f"Failed to set photo: {str(e)}"
             )
+    async def get_habits(self, session: AsyncSession):
+        async with session as session:
+            stmt = select(Habits.name)
+            result = await session.execute(stmt)
+            habits = result.scalars().all()
+            return list(habits)
+        

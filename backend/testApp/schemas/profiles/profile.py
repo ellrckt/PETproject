@@ -30,5 +30,5 @@ class EditProfile(BaseModel):
     # password: str | None = None
 
 
-class Hobbies(BaseModel):
+class Habits(BaseModel):
     name: str

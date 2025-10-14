@@ -1,10 +1,12 @@
 import redis.asyncio as redis
 from redis.commands.json.path import Path
 import os
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Set
 import logging
 from dotenv import load_dotenv
-
+import json
+from datetime import datetime
+from models.profiles import Profile
 load_dotenv() 
 
 logging.basicConfig(
@@ -25,18 +27,28 @@ class RedisJSONProfileService:
         self.logger.debug(f"Redis db: {redis_db}")
         # self.logger.debug(f"Redis password: {redis_password}" if redis_password else "Redis password: [NOT SET]")
 
-        self.redis_client = redis.Redis(
-            host=redis_host,
-            port=redis_port,
-            db=redis_db,
-            # password=redis_password,
-            decode_responses=True,
-            socket_connect_timeout=5,
-            retry_on_timeout=True
-        )
-        
-        self.json_client = self.redis_client.json()
+        try:
+            self.redis_client = redis.Redis(
+                host=redis_host,
+                port=redis_port,
+                db=redis_db,
+                decode_responses=True,
+                socket_connect_timeout=5,
+                retry_on_timeout=True
+            )
+            self.pubsub = self.redis_client.pubsub()
+            self.logger.debug("Redis client created successfully")
+            self.json_client = self.redis_client.json()
+            self.channel_subscribers: Dict[str, Set[str]] = {}
+            self.logger.debug("JSON client set")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create Redis client: {e}")
+            raise
     
+    
+    async def create_private_chat(self, user_id: str, room_name: Optional[str],):
+        pass
     async def check_connection(self):
         try:
             await self.redis_client.ping()
@@ -46,22 +58,66 @@ class RedisJSONProfileService:
             self.logger.debug("Failed to connect to Redis JSON")
             return False
     
-    def _get_profile_key(self, profile_id: str) -> str:
-        return f"profile:user_{profile_id}"
+    def _get_profile_key(self, user_id: str) -> str:
+        return f"profile:user_{user_id}"
     
     def _get_profiles_key(self) -> str:
         return "profiles:all"
+
+    def _get_room_key(self, room_id: str) -> str:
+        return f"room:{room_id}"
     
-    async def create_profile(self, profile_id: str, profile_data: Dict[str, Any], expire_seconds: Optional[int] = None) -> bool:
+    def _get_rooms_key(self) -> str:
+        return "rooms:all"
+    
+    # async def create_room(self, room_id: str):
+    #     key = self._get_room_key(room_id)
+    #     try:
+    #         await self.json_client.set(key, Path.root_path(), {"created_at": datetime.now().isoformat()})
+    #         await self.redis_client.sadd(self._get_profiles_key(), room_id)
+
+
+    
+    async def create_profile(self, user_id: str, profile_data: Dict[str, Any], expire_seconds: Optional[int] = None) -> bool:
         try:
-            key = self._get_profile_key(profile_id)
-            await self.json_client.set(key, Path.root_path(), profile_data)            
-            await self.redis_client.sadd(self._get_profiles_key(), profile_id)
+            key = self._get_profile_key(user_id)
+            await self.json_client.set(key, Path.root_path(), profile_data)  #Path.root_path(),          
+            await self.redis_client.sadd(self._get_profiles_key(), str(user_id))
             return True
         except Exception as e:
             self.logger.error(f"Error creating profile: {e}")
             return False
     
+    async def create_profiles_pipeline(self, profiles: List[Profile]):
+        async with self.redis.pipeline() as pipe:
+            for profile in profiles:
+                key = f"profile:{profile.user_id}"
+                pipe.setex(
+                    key, 
+                    self.expire_time, 
+                    profile
+                )
+            await pipe.execute()
+
+    async def get_profiles_pipeline(self, user_ids: List[int]) -> List[Optional[dict]]:
+        keys = [self._get_profile_key(user_id) for user_id in user_ids]
+        print(f"Getting profiles for user_ids: {user_ids}")
+        print(f"Redis keys: {keys}")
+        async with self.json_client.pipeline() as pipe:
+            for key in keys:
+                pipe.get(key)
+            results = await pipe.execute()
+        print(f"Raw Redis results: {results}")
+        decoded_results = []
+        for result in results:
+            if result is None:
+                decoded_results.append(None)
+            else:
+                decoded_results.append(json.loads(result))
+        
+        return decoded_results
+
+
     async def get_profile(self, profile_id: str) -> Optional[Dict[str, Any]]:
         try:
             key = self._get_profile_key(profile_id)
@@ -82,6 +138,9 @@ class RedisJSONProfileService:
     async def update_profile(self, profile_id: str, updates: Dict[str, Any]) -> bool:
         try:
             key = self._get_profile_key(profile_id)
+            if not await self.redis_client.exists(key):
+                self.logger.warning(f"Profile {key} does not exist")
+                return False
             
             for field, value in updates.items():
                 await self.json_client.set(key, f".{field}", value)

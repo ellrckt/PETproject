@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from typing import Literal
 from config import settings
 
+
 def check_jwt(access_token: str):
     token = access_token
     try:
@@ -82,6 +83,7 @@ def decode_jwt(
     algorithm: str = settings.auth_jwt.algorithm,
 ):
     try:
+        
         decoded_jwt = jwt.decode(
             token,
             public_key,
@@ -91,6 +93,8 @@ def decode_jwt(
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has been expired")
     except jwt.InvalidTokenError as e:
+        print(f"JWT Error: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
