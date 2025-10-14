@@ -62,7 +62,7 @@ class AuthService:
 
         user_session = await self.create_user_session(refresh_token, session)
 
-        return refresh_token, access_token
+        return refresh_token, access_token, result.id
                      
     
     async def create_user_session(self, refresh_token: str, session: AsyncSession):
