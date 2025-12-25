@@ -121,7 +121,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
             subscriptions_count=user.subscriptions_count,
             email=user.email,
             user_id=user.id)
-
+    
 #     async def check_refresh_token(self, payload: dict, session: AsyncSession):
 #         stmt = select(self.model).where(self.model.email == payload["email"])
 #         async with session as session:

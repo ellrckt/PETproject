@@ -23,20 +23,22 @@ def check_jwt(access_token: str):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 def create_token(
-    username: str,
-    email: str,
-    token_type: Literal["access", "refresh"],
-    user_id: int
+    username: str, email: str, token_type: Literal["access", "refresh"], user_id: int
 ) -> str:
 
     payload = {
         "sub": username,
         "email": email,
-        "token_type": settings.auth_jwt.ACCESS_TOKEN_TYPE if token_type == "access" else settings.auth_jwt.REFRESH_TOKEN_TYPE,
-        "user_id": user_id
+        "token_type": (
+            settings.auth_jwt.ACCESS_TOKEN_TYPE
+            if token_type == "access"
+            else settings.auth_jwt.REFRESH_TOKEN_TYPE
+        ),
+        "user_id": user_id,
     }
-    
+
     return encode_jwt(payload)
 
 
@@ -48,7 +50,7 @@ def encode_jwt(
     expire_days: int = settings.auth_jwt.refresh_token_expire_days,
     expire_timedelta: timedelta | None = None,
 ):
-    if payload["token_type"] ==  settings.auth_jwt.REFRESH_TOKEN_TYPE:
+    if payload["token_type"] == settings.auth_jwt.REFRESH_TOKEN_TYPE:
         to_encode = payload.copy()
         now = datetime.utcnow()
         if expire_timedelta:
@@ -61,7 +63,7 @@ def encode_jwt(
             private_key,
             algorithm=algorithm,
         )
-    if payload["token_type"] ==  settings.auth_jwt.ACCESS_TOKEN_TYPE:
+    if payload["token_type"] == settings.auth_jwt.ACCESS_TOKEN_TYPE:
         to_encode = payload.copy()
         now = datetime.utcnow()
         if expire_timedelta:
@@ -78,12 +80,13 @@ def encode_jwt(
 
 
 def decode_jwt(
-    token: str | bytes,
+    token: str,
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
 ):
     try:
-        
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
         decoded_jwt = jwt.decode(
             token,
             public_key,

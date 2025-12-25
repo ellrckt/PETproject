@@ -19,52 +19,57 @@ router = APIRouter(tags=["contacts"], prefix="/contacts")
 async def subscribe(
     target_id: int,
     request: Request,
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    subscription_service: Annotated[SubscriptionService,Depends(subscription_service)],
-    user_service: Annotated[UserService,Depends(user_service)]
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    subscription_service: Annotated[SubscriptionService, Depends(subscription_service)],
+    user_service: Annotated[UserService, Depends(user_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
     user = await user_service.get_current_user(session, refresh_token)
     user_id = user.user_id
     if user_id == target_id:
-        raise HTTPException(status_code = 400,detail="Target and self id are equal")
+        raise HTTPException(status_code=400, detail="Target and self id are equal")
     result = await subscription_service.subscribe(refresh_token, target_id, session)
     return result
+
 
 @router.post("/delete_contact/{target_id}")
 async def unsubscribe(
     target_id: int,
     request: Request,
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    subscription_service: Annotated[SubscriptionService,Depends(subscription_service)],
-    user_service: Annotated[UserService,Depends(user_service)]
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    subscription_service: Annotated[SubscriptionService, Depends(subscription_service)],
+    user_service: Annotated[UserService, Depends(user_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
     user = await user_service.get_current_user(session, refresh_token)
     user_id = user.user_id
     if user_id == target_id:
-        raise HTTPException(status_code = 400,detail="Target and self id are equal")
+        raise HTTPException(status_code=400, detail="Target and self id are equal")
     result = await subscription_service.unsubscribe(refresh_token, target_id, session)
     return result
+
 
 @router.get("/get_contacts")
 async def get_subscriptions(
     request: Request,
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    subscription_service: Annotated[SubscriptionService,Depends(subscription_service)]
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    subscription_service: Annotated[SubscriptionService, Depends(subscription_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
-    result = await subscription_service.get_subscriptions(refresh_token,session)
+    result = await subscription_service.get_subscriptions(refresh_token, session)
     return result
+
 
 @router.get("/get_contacts_profiles")
 async def get_subscribers_profiles(
     request: Request,
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    subscription_service: Annotated[SubscriptionService,Depends(subscription_service)],
-    profile_service: Annotated[ProfileService,Depends(profile_service)],
-    redis_service: Annotated[RedisJSONProfileService,Depends(redis_json_service)]
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    subscription_service: Annotated[SubscriptionService, Depends(subscription_service)],
+    profile_service: Annotated[ProfileService, Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
-    result = await subscription_service.get_subscribers_profiles(refresh_token,profile_service,redis_json_service,session)
+    result = await subscription_service.get_subscribers_profiles(
+        refresh_token, profile_service, redis_json_service, session
+    )
     return result

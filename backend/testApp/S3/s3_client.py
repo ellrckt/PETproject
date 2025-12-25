@@ -6,8 +6,6 @@ from dotenv import load_dotenv, find_dotenv
 import os
 from fastapi import UploadFile, HTTPException
 from typing import Optional
-import uuid
-from datetime import datetime
 
 load_dotenv(find_dotenv())
 
@@ -109,8 +107,10 @@ class S3Client:
         filename = f"{prefix}_{user_id}"
         return filename
 
-
-    async def delete_file(self, s3_key: str,):
+    async def delete_file(
+        self,
+        s3_key: str,
+    ):
         try:
             async with self.get_client() as client:
                 await client.delete_object(Bucket=self.bucket_name, Key=s3_key)
@@ -121,7 +121,9 @@ class S3Client:
     async def get_file(self, object_name: str, destination_path: str):
         try:
             async with self.get_client() as client:
-                response = await client.get_object(Bucket=self.bucket_name, Key=object_name)
+                response = await client.get_object(
+                    Bucket=self.bucket_name, Key=object_name
+                )
                 data = await response["Body"].read()
                 with open(destination_path, "wb") as file:
                     file.write(data)

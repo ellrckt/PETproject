@@ -44,14 +44,9 @@ class SQLAlchemyLocationRepository(AbstractLocationRepository):
             return UserCityCountry(city=city, country=country)
 
     async def set_user_lat_lng(
-        self, 
-        location: dict, 
-        session: AsyncSession, 
-        email: str, 
-        city: str, 
-        country: str
+        self, location: dict, session: AsyncSession, email: str, city: str, country: str
     ) -> UserCityCountry:
-        
+
         result = await self.set_user_location(location, session, email, city, country)
 
         return result

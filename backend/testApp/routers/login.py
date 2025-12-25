@@ -21,6 +21,7 @@ from auth.utils import decode_jwt, check_jwt
 
 router = APIRouter(tags=["login"], prefix="/login")
 
+
 @router.post("", response_model=TokenInfo)
 async def login_user(
     schema: UserLogin,

@@ -5,4 +5,4 @@ from .session import UserSession
 from .location import UserLocation
 from .profiles import Profile
 
-__all__ = ['Base', 'User', 'Subscription', 'UserSession', 'UserLocation', 'Profile']
+__all__ = ["Base", "User", "Subscription", "UserSession", "UserLocation", "Profile"]

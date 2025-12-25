@@ -37,7 +37,7 @@ class LocationService:
     async def set_user_lat_lng(
         self, schema: dict, session: AsyncSession, request: Request
     ):
-        
+
         location = schema.model_dump()
         refresh_token = request.cookies.get("refresh_token")
         payload = decode_jwt(refresh_token)
