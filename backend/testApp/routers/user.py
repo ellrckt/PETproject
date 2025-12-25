@@ -1,5 +1,8 @@
+from os import access
+from idna import decode
 from testapp.dependencies import user_crud_service
 from schemas.user.user import (
+    GetUser,
     UserCreation,
     UserResponse,
     UserUpdate,
@@ -19,6 +22,7 @@ from testapp.dependencies import user_service
 router = APIRouter(tags=["user_crud"], prefix="/user")
 
 http_bearer = HTTPBearer()
+
 
 @router.post("/user_create")
 async def create_user(
@@ -82,13 +86,13 @@ async def update_user(
     result = await user_service.update(schema, session, payload)
     return result
 
+
 @router.get("/get_current_user")
 async def get_current_user(
     request: Request,
-    session: Annotated[AsyncSession,Depends(db_helper.get_session)],
-    user_service: Annotated[UserService,Depends(user_service)]
-    ):
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    user_service: Annotated[UserService, Depends(user_service)],
+):
     refresh_token = request.cookies.get("refresh_token")
     result = await user_service.get_current_user(session, refresh_token)
     return result
-    

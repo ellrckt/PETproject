@@ -1,10 +1,10 @@
 from typing import Tuple
-
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
 import aiohttp
 import jwt
-from typing import Dict
-from fastapi import status,HTTPException
+from typing import Dict, Optional
+from fastapi import status, HTTPException
 
 from auth.utils import create_token, decode_jwt, encode_jwt
 from config import settings
@@ -15,11 +15,40 @@ from utils.auth_repository import AbstractAuthRepository
 from services.profile import ProfileService
 from redis_service.redis_profile_service import RedisJSONProfileService
 
+
 class AuthService:
 
     def __init__(self, auth_repository: AbstractAuthRepository) -> TokenInfo:
 
         self.auth_repository = auth_repository()
+
+    @staticmethod
+    def format_username(raw_username: str) -> str:
+
+        if not raw_username:
+            return raw_username
+
+        formatted = raw_username.strip()
+        formatted = re.sub(r"^@+", "", formatted)
+        formatted = re.sub(r"\s+", "_", formatted)
+
+        return "@" + formatted if formatted else ""
+
+    @staticmethod
+    def validate_username_format(username: str) -> Tuple[bool, Optional[str]]:
+
+        username_without_at = username[1:] if username.startswith("@") else username
+
+        if len(username_without_at) < 4:
+            return False, "Минимум 3 символа"
+
+        if len(username_without_at) > 30:
+            return False, "Максимум 30 символов"
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", username_without_at):
+            return False, "Только латинские буквы, цифры и _"
+
+        return True, None
 
     async def get_refresh_token(self, user_data: dict):
 
@@ -27,7 +56,7 @@ class AuthService:
             "sub": user_data.username,
             "email": user_data.email,
             "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
-            "user_id": user_data.id
+            "user_id": user_data.id,
         }
 
         refresh_token = encode_jwt(payload)
@@ -43,28 +72,37 @@ class AuthService:
 
     async def register_user(
         self,
-        schema: UserRegistration, 
+        schema: UserRegistration,
         session: AsyncSession,
         profile_service: ProfileService,
         redis_service: RedisJSONProfileService,
     ):
-        
-        
-            
+
         user_data = schema.model_dump()
+        formatted_username = AuthService.format_username(user_data["username"])
+        is_valid_username, error = AuthService.validate_username_format(
+            formatted_username
+        )
+        if not is_valid_username:
+            raise HTTPException(status_code=404, detail=f"{error}")
+        user_data["username"] = formatted_username
+
         result = await self.auth_repository.register_user(user_data, session)
 
-        refresh_token = create_token(result.username, result.email, "refresh", result.id)
+        refresh_token = create_token(
+            result.username, result.email, "refresh", result.id
+        )
         access_token = create_token(result.username, result.email, "access", result.id)
 
         temporary_profile = UpdateProfile(username=result.username)
-        profile = await profile_service.update_profile(session, refresh_token, temporary_profile, redis_service)
+        await profile_service.update_profile(
+            session, refresh_token, temporary_profile, redis_service
+        )
 
-        user_session = await self.create_user_session(refresh_token, session)
+        await self.create_user_session(refresh_token, session)
 
         return refresh_token, access_token, result.id
-                     
-    
+
     async def create_user_session(self, refresh_token: str, session: AsyncSession):
 
         payload = decode_jwt(refresh_token)
@@ -80,7 +118,7 @@ class AuthService:
 
         return result
 
-    async def get_google_user_data(self,code: str)->Dict:
+    async def get_google_user_data(self, code: str) -> Dict:
 
         google_token_url = settings.auth_jwt.google_token_url
 
@@ -121,5 +159,3 @@ class AuthService:
         result = await self.auth_repository.refresh_token(session, refresh_token)
 
         return result
-
-   

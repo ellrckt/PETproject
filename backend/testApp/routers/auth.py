@@ -1,6 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    Form,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,23 +21,27 @@ from schemas.token.token import TokenInfo
 from schemas.user.user import UserLogin, UserRegistration
 from services.auth import AuthService
 from services.profile import ProfileService
-from testapp.dependencies import auth_service,profile_service,redis_json_service
+from testapp.dependencies import auth_service, profile_service, redis_json_service
 from redis_service.redis_profile_service import RedisJSONProfileService
+
 registration_router = APIRouter(tags=["registration"], prefix="/registration")
+
 
 @registration_router.post("", response_model=TokenInfo)
 async def register_user(
     schema: UserRegistration,
     auth_service: Annotated[AuthService, Depends(auth_service)],
-    profile_service: Annotated[ProfileService,Depends(profile_service)],
-    redis_service: Annotated[RedisJSONProfileService,Depends(redis_json_service)],
+    profile_service: Annotated[ProfileService, Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
     response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
 
     try:
-        refresh_token, access_token, id = await auth_service.register_user(schema, session, profile_service, redis_service)
-        
+        refresh_token, access_token, id = await auth_service.register_user(
+            schema, session, profile_service, redis_service
+        )
+
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
@@ -38,15 +51,16 @@ async def register_user(
             max_age=3600 * 24 * 7,
             path="/",
         )
-        
+
         return TokenInfo(refresh_token=refresh_token, access_token=access_token, id=id)
-        
+
     except Exception as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
 
 
 login_router = APIRouter(tags=["login"], prefix="/login")
+
 
 @login_router.post("", response_model=TokenInfo)
 async def login_user(
@@ -93,23 +107,23 @@ async def get_google_token(
     auth_service: Annotated[AuthService, Depends(auth_service)],
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
-        user_data = await auth_service.get_google_user_data(code)
+    user_data = await auth_service.get_google_user_data(code)
 
-        result = await auth_service.get_tokens_with_google(user_data["email"], session)
+    result = await auth_service.get_tokens_with_google(user_data["email"], session)
 
-        session = await auth_service.create_user_session(result.refresh_token, session)
+    session = await auth_service.create_user_session(result.refresh_token, session)
 
-        response.set_cookie(
-            key="refresh_token",
-            value=result.refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="Lax",
-            max_age=3600,
-            path="/",
-        )
+    response.set_cookie(
+        key="refresh_token",
+        value=result.refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="Lax",
+        max_age=3600,
+        path="/",
+    )
 
-        return result
+    return result
 
 
 @login_router.get("/check_refresh_token")
@@ -144,7 +158,7 @@ async def refresh_token(
     auth_service: Annotated[AuthService, Depends(auth_service)],
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
-    
+
     refresh_token = request.cookies.get("refresh_token")
     new_access_token = await auth_service.refresh_token(session, refresh_token)
 

@@ -11,15 +11,19 @@ from services.profile import ProfileService
 from services.subscription import SubscriptionService
 
 from redis_service.redis_profile_service import RedisJSONProfileService
+from redis_service.redis_chat_service import RedisChatManager
 
 def subscription_service():
     return SubscriptionService(SubscriptionRepository)
 
-def redis_json_service()->RedisJSONProfileService:
+
+def redis_json_service() -> RedisJSONProfileService:
     return RedisJSONProfileService()
+
 
 def location_service():
     return LocationService(LocationRepository)
+
 
 def profile_service():
     return ProfileService(ProfileRepository)
@@ -35,3 +39,11 @@ def auth_service():
 
 def user_crud_service():
     return UserCRUDService(SQLAlchemyUserCRUDRepository)
+
+def get_ws_service():
+    from chats.chat_service import WebSocketManager
+    return WebSocketManager()
+
+def get_redis_chat_service():
+    return RedisChatManager()
+    

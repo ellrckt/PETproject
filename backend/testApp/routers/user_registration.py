@@ -11,6 +11,7 @@ from testapp.dependencies import user_service
 
 router = APIRouter(tags=["registration"], prefix="/registration")
 
+
 @router.post("", response_model=TokenInfo)
 async def register_user(
     schema: UserRegistration,
@@ -21,7 +22,7 @@ async def register_user(
 
     try:
         refresh_token, access_token = await user_service.register_user(schema, session)
-        
+
         response.set_cookie(
             key="refresh_token",
             value=refresh_token,
@@ -31,9 +32,9 @@ async def register_user(
             max_age=3600 * 24 * 7,
             path="/",
         )
-        
+
         return TokenInfo(refresh_token=refresh_token, access_token=access_token)
-        
+
     except Exception as e:
         await session.rollback()
         raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")

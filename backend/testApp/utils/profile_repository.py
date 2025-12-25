@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from typing import List
 
 from models.user import User
-from models.profiles import Profile
+from schemas.profiles.profile import Profile as ProfileSchema
 from models.habits import Habits
 from models.file import UserPhoto
 from schemas.profiles.profile import Profile as ProfileSchema
@@ -43,13 +43,24 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             result["profile_photo_url"] = url
         return result
 
-    async def get_user_profiles(self,user_ids: int,session: AsyncSession)->List[Profile]:
+    async def get_user_profiles(
+        self, user_ids: int, session: AsyncSession
+    ) -> List[Profile]:
         async with session.begin():
             stmt = select(self.model).where(self.model.user_id.in_(user_ids))
             result = await session.execute(stmt)
             user_profiles = result.scalars().all()
             return user_profiles
- 
+        
+    async def search_users_profiles(self, session: AsyncSession, search_filter: str, payload: dict)->List[ProfileSchema]:
+        stmt = select(Profile).filter(
+            Profile.username.ilike(f"%{search_filter}%"),
+            Profile.user_id != payload["user_id"])
+        users_profiles = await session.execute(stmt)
+        result = users_profiles.scalars()
+        return result
+        
+
     async def update_profile(
         self, session: AsyncSession, email: str, profile_data: dict
     ):
@@ -89,7 +100,7 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
     async def create_profile(
         self, session: AsyncSession, email: str, profile_data: dict
     ):
-        
+
         stmt = select(User).where(User.email == email)
         async with session as session:
             result = await session.execute(stmt)
@@ -144,10 +155,10 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             raise HTTPException(
                 status_code=400, detail=f"Failed to set photo: {str(e)}"
             )
+
     async def get_habits(self, session: AsyncSession):
         async with session as session:
             stmt = select(Habits.name)
             result = await session.execute(stmt)
             habits = result.scalars().all()
             return list(habits)
-        
