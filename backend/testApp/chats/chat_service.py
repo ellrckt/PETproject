@@ -93,14 +93,21 @@ class WebSocketManager:
                 await connection.send_json(message_with_class)
 
     async def get_user_rooms(self, user_id: int):
-        user_rooms = self.user_rooms[user_id]
-        user_rooms_to_represent = {}
-        for room_id in user_rooms.items():
-            receiver_id = self.rooms[room_id][0]
-            if receiver_id == user_id:
-                receiver_id = self.rooms[room_id][1]
-            last_message = await self.redis_service.get_last_message(room_id)
-            user_rooms_to_represent[room_id] = {"last_message": last_message, "receiver_id": receiver_id}
-        return user_rooms_to_represent
+        try:
+            user_rooms = self.user_rooms[user_id] #[12,45,65]
+            user_rooms_to_represent = {}
+            for room_id in user_rooms:
+                receiver_id = self.rooms[room_id][0]
+                if receiver_id == user_id:
+                    receiver_id = self.rooms[room_id][1]
+                last_message = await self.redis_service.get_last_message(room_id)
+                user_rooms_to_represent[room_id] = {"sender_id": user_id,"room_id": room_id, "last_message": last_message, "receiver_id": receiver_id}
+            return user_rooms_to_represent
+        except KeyError:
+            raise KeyError
             
+    async def _get_room_history(self, room_id: str):
+       history_messages =  await self.redis_service.get_recent_messages(room_id)
 
+
+       

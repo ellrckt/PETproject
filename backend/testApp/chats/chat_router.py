@@ -22,11 +22,43 @@ async def get_user_rooms(
 ):
     refresh_token = request.cookies.get("refresh_token")
     user_id = decode_jwt(refresh_token)["user_id"]
-    user_rooms = await ws_service.get_user_rooms(user_id)
-    receiver_ids = [room["receiver_id"] for room in user_rooms]
-    receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service)
-    print(f"PROFILES: {receivers_profiles}")
-    return user_rooms
+    try:
+        user_rooms = await ws_service.get_user_rooms(user_id) 
+        #{"room_id": {"sender_id": user_id,"room_id": room_id,
+        #last_message": last_message, "receiver_id": receiver_id}}
+
+        receiver_ids = [room["receiver_id"] for room in user_rooms]
+        receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service)
+        profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
+
+        rooms_with_profiles = {
+            room["room_id"]: {
+                **room,  
+                "username": profiles_by_id[room["receiver_id"]]["username"],
+                "profile_photo_url": profiles_by_id[room["receiver_id"]]["profile_photo_url"],
+                "profile_id": profiles_by_id[room["receiver_id"]]["id"],
+            }
+            for room in user_rooms 
+            if room["receiver_id"] in profiles_by_id
+            }
+        return rooms_with_profiles
+        
+        #user_rooms_to_represent 
+        #[{
+        #    "user_id": 0,
+        #    "username": "string",
+        #    "age": 0,
+        #    "city": "string",
+        #    "country": "string",
+        #    "about_user": "string",
+        #    "user_habits": [
+        #        "string"
+        #    ],
+        #    "profile_photo_url": "string"
+        #    },]
+
+    except KeyError:
+        return {f"{user_id}": []}
 
 
 

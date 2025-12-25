@@ -70,7 +70,6 @@ class ProfileService:
     ):
         try:
             redis_results = await redis_service.get_profiles_pipeline(user_ids)
-            # print(f"REDIS {redis_results}")
             missing_user_ids = []
             results_map = {}
 
