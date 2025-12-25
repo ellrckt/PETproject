@@ -4,7 +4,7 @@ from typing import Optional, List
 
 
 class Profile(BaseModel):
-
+    user_id: int | None = None
     username: str | None = None
     age: int | None = None
     city: str | None = None

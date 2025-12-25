@@ -52,12 +52,10 @@ class UserService:
 
         self.user_repository = user_repository()
 
-    async def get_current_user(self,session: AsyncSession, refresh_token: str):
+    async def get_current_user(self, session: AsyncSession, refresh_token: str):
 
         payload = decode_jwt(refresh_token)
         user_id = payload["user_id"]
-        result = await self.user_repository.get_current_user(session,user_id)
+        result = await self.user_repository.get_current_user(session, user_id)
         return result
 
-
-   

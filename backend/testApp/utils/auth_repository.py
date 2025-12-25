@@ -10,7 +10,7 @@ from auth.utils import hash_password, validate_password, encode_jwt, decode_jwt
 from schemas.token.token import TokenInfo
 from models.user import User
 from models.session import UserSession
-from config import settings 
+from config import settings
 
 
 class AbstractAuthRepository(ABC):
@@ -35,13 +35,15 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
     model = User
 
     async def check_refresh_token(self, payload: dict, session: AsyncSession):
-        
+
         async with session as session:
             stmt = select(self.model).where(self.model.email == payload["email"])
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
 
-            stmt = select(UserSession.refresh_token).where(UserSession.user_id == user.id)
+            stmt = select(UserSession.refresh_token).where(
+                UserSession.user_id == user.id
+            )
             result = await session.execute(stmt)
             session = result.scalar_one_or_none()
             if session is None:
@@ -63,6 +65,8 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     )
                 else:
                     if user_data["password"] == user_data["repit_password"]:
+                        print(user_data["password"])
+                        print(len(user_data["password"]))
                         if len(user_data["password"]) >= 4:
                             user_data["password"] = hash_password(user_data["password"])
                             del user_data["repit_password"]
@@ -86,9 +90,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
         return new_user
 
     async def create_user_session(
-        self, refresh_token: str, 
-        payload: dict, 
-        session: AsyncSession
+        self, refresh_token: str, payload: dict, session: AsyncSession
     ):
 
         async with session as session:
@@ -116,12 +118,11 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     iat=datetime.fromtimestamp(payload["iat"]),
                     is_blacklisted=False,
                 )
-                session.add(new_session)  
+                session.add(new_session)
                 await session.commit()
-                await session.refresh(new_session) 
+                await session.refresh(new_session)
                 return new_session.refresh_token
 
-            
     async def login_user(self, data_dict: dict, session: AsyncSession) -> TokenInfo:
 
         async with session as session:
@@ -140,7 +141,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     "sub": user.username,
                     "email": user.email,
                     "token_type": settings.auth_jwt.REFRESH_TOKEN_TYPE,
-                    "user_id": user.id
+                    "user_id": user.id,
                 }
                 refresh_token = encode_jwt(payload)
             else:
@@ -148,7 +149,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     status_code=422,
                     detail="Password must be at least 4 characters long",
                 )
-            return TokenInfo(refresh_token=refresh_token)
+            return TokenInfo(refresh_token=refresh_token, id=user.id)
 
     async def refresh_token(self, session: AsyncSession, refresh_token: str):
         access_payload = decode_jwt(refresh_token)
@@ -189,7 +190,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
             refresh_token = result.scalar_one_or_none()
             if refresh_token is None:
                 raise HTTPException(status_code=505, detail="Missed user session")
-            
+
             return TokenInfo(refresh_token=refresh_token)
 
     async def get_refresh_token(self, refresh_token: str):
@@ -203,5 +204,5 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
             result = await session.execute(stmt)
             user = result.scalar_one_or_none()
             user_id = user.id
-            
+
         return user_id

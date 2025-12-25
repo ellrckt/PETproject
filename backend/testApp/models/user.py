@@ -7,6 +7,7 @@ from models.habits import Habits
 from models.profiles import Profile
 from models.subscription import Subscription
 
+
 class User(Base):
 
     __tablename__ = "user"
@@ -19,7 +20,6 @@ class User(Base):
     subscribers_count: Mapped[int] = mapped_column(Integer, default=0)
     subscriptions_count: Mapped[int] = mapped_column(Integer, default=0)
 
-
     sessions: Mapped[list["UserSession"]] = relationship(
         "UserSession", back_populates="user"
     )
@@ -30,13 +30,10 @@ class User(Base):
         "Profile", back_populates="user", cascade="all, delete-orphan"
     )
     subscriptions = relationship(
-        "Subscription", 
+        "Subscription",
         foreign_keys="Subscription.subscriber_id",
-        back_populates="subscriber"
+        back_populates="subscriber",
     )
     subscribers = relationship(
-        "Subscription",
-        foreign_keys="Subscription.target_id", 
-        back_populates="target"
+        "Subscription", foreign_keys="Subscription.target_id", back_populates="target"
     )
-
