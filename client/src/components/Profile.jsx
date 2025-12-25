@@ -35,10 +35,18 @@ function Profile() {
       await reqService.patch("/profile/update_profile", data);
    };
 
-   const profile = useSelector(state => state.profile);
+   // const profile = useSelector(state => state.profile);
+
+   const getUserId = async () => {
+      const res = await reqService.get('user/get_current_user');
+      return res.data.user_id;
+   }
 
    const getProfile = async () => {
-      const res = await reqService.get(`profile/profiles/${profile.id}`);
+      const profile = await getUserId();
+
+      const res = await reqService.get(`profile/profiles/${profile}`);
+
       try {
          setName(res.data.username || "");
          setAge(res.data.age || "");
