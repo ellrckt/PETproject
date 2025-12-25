@@ -105,3 +105,15 @@ async def user_search(
     return users_profiles
 
 
+@router.post("/get_user_profiles")
+async def get_user_profiles(
+    user_ids: List[int],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
+    profile_service: Annotated[ProfileService, Depends(profile_service)],
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
+    headers: str = Depends(http_bearer),
+):
+    payload = decode_jwt(headers.credentials)
+    result = await profile_service.get_user_profiles(user_ids, redis_service, session)
+    return result
+    
