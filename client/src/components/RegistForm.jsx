@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addInfo } from './../store/profile/profileSlice';
 
 import reqService from "../API/RequestService";
 import Button from "./UI/Button";
@@ -8,6 +10,8 @@ import Input from "./UI/Input";
 import useLocation from "../hooks/useLocation";
 
 function RegistForm() {
+   const dispatch = useDispatch();
+
    const [username, setName] = useState("");
    const [email, setEmail] = useState("");
    const [password, setPassword] = useState("");
@@ -25,11 +29,22 @@ function RegistForm() {
          password: password,
          repit_password: repeatPassword,
       });
-      
-      if (typeof res === 'string') {
+
+      const userData = res.data;
+      console.log(res.data);
+
+      dispatch(
+         addInfo({
+            name: '',
+            photo: '',
+            id: userData.id,
+         })
+      );
+
+      if (typeof res === "string") {
          setError(res);
       } else {
-         await reqService.post('/user_location/set_user_lat_lng', coords);
+         await reqService.post("/user_location/set_user_lat_lng", coords);
          // user coords are in db, localstorage - alternative
          //localStorage.setItem('location', JSON.stringify(userLocation.data));
          nav("/home");
@@ -58,18 +73,20 @@ function RegistForm() {
             placeholder="Password (at least 4 symbols)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            type='password'
+            type="password"
          />
 
          <Input
             placeholder="Repeat password"
             value={repeatPassword}
             onChange={(e) => setRepeatPassword(e.target.value)}
-            type='password'
+            type="password"
          />
 
          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+               {error}
+            </div>
          )}
 
          <Button

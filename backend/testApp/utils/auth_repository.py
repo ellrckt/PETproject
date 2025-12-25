@@ -148,7 +148,7 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     status_code=422,
                     detail="Password must be at least 4 characters long",
                 )
-            return TokenInfo(refresh_token=refresh_token)
+            return TokenInfo(refresh_token=refresh_token, id=user.id)
 
     async def refresh_token(self, session: AsyncSession, refresh_token: str):
         access_payload = decode_jwt(refresh_token)

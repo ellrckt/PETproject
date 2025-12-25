@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 
 import Button from "./UI/Button";
 import Input from "./UI/Input";
@@ -26,7 +27,7 @@ function Profile() {
    }, []);
 
    const getHobbiesList = async () => {
-      const res = await reqService.get("/profile/get_hobbies");
+      const res = await reqService.get("/profile/get_habits");
       setHobbiesList(res.data);
    };
 
@@ -34,8 +35,10 @@ function Profile() {
       await reqService.patch("/profile/update_profile", data);
    };
 
+   const profile = useSelector(state => state.profile);
+
    const getProfile = async () => {
-      const res = await reqService.get("profile/get_user_profile");
+      const res = await reqService.get(`profile/profiles/${profile.id}`);
       try {
          setName(res.data.username || "");
          setAge(res.data.age || "");
