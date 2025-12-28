@@ -94,6 +94,9 @@ class S3Client:
     def get_file_url(self, s3_key: str) -> str:
         return f"https://099d0323-2777-45e7-b4b3-aa695bb78731.selstorage.ru/{s3_key}"
 
+        
+
+
     def generate_image_name(
         self,
         user_id: int,
@@ -138,3 +141,4 @@ s3_client = S3Client(
     endpoint_url="https://s3.storage.selcloud.ru",
     bucket_name="pet1",
 )
+

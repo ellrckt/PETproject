@@ -1,12 +1,8 @@
-from typing import Annotated
+from typing import Annotated, Dict
 from fastapi import Cookie, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
 from redis_service.redis_profile_service import RedisJSONProfileService
-from sqlalchemy.ext.asyncio import AsyncSession
-from db.db import db_helper
 from auth.utils import decode_jwt
 from chats.chat_service import WebSocketManager
-from redis_service.redis_chat_service import RedisChatManager
-from routers.auth import refresh_token
 from testapp.dependencies import get_ws_service, profile_service, redis_json_service
 from services.profile import ProfileService
 
@@ -17,7 +13,6 @@ async def get_user_rooms(
     request: Request,
     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
-    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
     redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)]
 ):
     refresh_token = request.cookies.get("refresh_token")
@@ -76,13 +71,34 @@ async def websocket_endpoint(
             refresh_token = cookie.split("=", 1)[1]
             break
     payload = decode_jwt(refresh_token)
-    sender_id = payload["user_Id"]
+    receiver_id = int(receiver_id)
+    sender_id = int(payload["user_id"])
     room_id = ws_service._create_room_id(sender_id, receiver_id,)
-    await ws_service.connect(websocket, room_id, sender_id)
-    sender_username =payload["sub"]
+    await ws_service.connect_room(websocket, sender_id, receiver_id)
+    sender_username = payload["sub"]
+    
     try:
+        await websocket.accept()
         while True:
             data = await websocket.receive_text()
             await ws_service.broadcast(data, room_id, sender_id, receiver_id, sender_username)
     except WebSocketDisconnect:
         ws_service.disconnect(room_id, sender_id)
+
+@router.post("/translate_message")
+async def translate_message(
+    message_to_translate: str,
+    ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
+    )->Dict:
+    result = ws_service.translate_message(message_to_translate)
+    return result
+
+    # @router.get("/get_context_answer")
+    # async def get_context_answer(
+    #     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
+    #     request: Request,
+    #     )->Dict:
+    #     refresh_token = request.cookies.get("refresh_token")
+    #     sender_id = decode_jwt(refresh_token)["user_id"]
+    #     ws_service.get_context_answer()
+        

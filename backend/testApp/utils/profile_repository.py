@@ -37,6 +37,7 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             stmt = select(UserPhoto.url).where(UserPhoto.user_id == user_id)
             photo = await session.execute(stmt)
             url = photo.scalar_one_or_none()
+            print(f"URL: {url}")
             profile = result.scalar_one_or_none()
             result = {k: v for k, v in result.items() if not k.startswith("_")}
             result["profile_photo_url"] = url
