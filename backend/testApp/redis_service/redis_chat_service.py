@@ -9,7 +9,7 @@ from typing import Optional
 
 
 class RedisChatManager:
-    def __init__(self, redis_url: str):
+    def __init__(self):
         redis_host = os.getenv("REDIS_HOST", "localhost")
         redis_port = int(os.getenv("REDIS_PORT", 6379))
         redis_db = int(os.getenv("REDIS_DB", 0))
@@ -110,6 +110,25 @@ class RedisChatManager:
         except Exception as e:
             return HTTPException(status_code=500, detail="History data receiving error")
     
+    async def get_last_n_messages(self, room_id: str, n: int = 3):
+
+        history_key = self._create_room_history_prefix(room_id)
+        
+        try:
+            messages_json = await self.redis.lrange(history_key, -n, -1)
+            
+            messages = []
+            for msg_json in messages_json:
+                try:
+                    messages.append(json.loads(msg_json))
+                except json.JSONDecodeError:
+                    continue
+            
+            return messages
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
     async def get_last_message(self, room_id: int):
         history_key = self._create_room_history_prefix(room_id)
         last_message = await self.redis.lindex(history_key, -1)
