@@ -8,6 +8,7 @@ import Button from "./UI/Button";
 import Input from "./UI/Input";
 
 import useLocation from "../hooks/useLocation";
+import jwtService from "../API/JwtService";
 
 function RegistForm() {
    const dispatch = useDispatch();
@@ -31,6 +32,7 @@ function RegistForm() {
       });
 
       const userData = res.data;
+      jwtService.setAccessToken(userData.access_token);
       console.log(res.data);
 
       dispatch(

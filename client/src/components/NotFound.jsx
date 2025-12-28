@@ -4,7 +4,7 @@ import Button from "./UI/Button";
 function NotFound() {
    const nav = useNavigate();
    const linkToHome = () => {
-      nav('/home');
+      nav('/');
    }
 
    return (
@@ -22,7 +22,7 @@ function NotFound() {
                   the home page.{" "}
                </p>
                <Button onClick={linkToHome}>
-                  Back to Homepage
+                  Back to Start Page
                </Button>
             </div>
          </div>

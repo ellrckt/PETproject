@@ -1,14 +1,14 @@
 import axios from "axios";
 
 class JwtService {
-   #accessToken = '';
-   #baseUrl = 'http://localhost:8000/';
+   #accessToken = "";
+   #baseUrl = "http://localhost:8000/";
    #authHeader;
 
    constructor() {
       if (JwtService.instance) {
          return JwtService.instance;
-      };
+      }
 
       this.#authHeader = axios.create({
          baseURL: this.#baseUrl,
@@ -18,12 +18,29 @@ class JwtService {
       //добавление актуального токена в заголовки
       this.#authHeader.interceptors.request.use((config) => {
          if (this.#accessToken) {
-            config.headers['Authorization'] = `Bearer ${this.#accessToken}`;
+            config.headers["Authorization"] = `Bearer ${this.#accessToken}`;
          }
          return config;
       });
 
       JwtService.instance = this;
+   }
+
+   async initToken() {
+      try {
+         const res = await axios.get(`${this.#baseUrl}login/refresh`, {
+            withCredentials: true,
+         });
+
+         this.setAccessToken(res.data.access_token);
+         return true;
+      } catch (error) {
+         if (error.response?.status === 401) {
+            console.log("Refresh token expired or invalid");
+            throw new Error("REFRESH_FAILED");
+         }
+         throw error;
+      }
    }
 
    getAccessToken() {
@@ -37,17 +54,22 @@ class JwtService {
    //перехват ошибки сервера в случае протухшего токена и его обновление
    setResponseInterceptors() {
       this.#authHeader.interceptors.response.use(
-         res => {
+         (res) => {
             if (res.data && res.data.access_token) {
                this.setAccessToken(res.data.access_token);
             }
             return res;
          },
-         async err => {
-            if (axios.isAxiosError(err) && err.response.status === 401 && err.response.data.detail === 'Token has been expired') {
+         async (err) => {
+            // && err.response.data.detail === 'Token has been expired'
+            if (
+               axios.isAxiosError(err) &&
+               (err.response.status === 401 || err.response.status === 403)
+            ) {
                try {
-                  const res = await this.get('/login/refresh');
-                  this.setAccessToken(res.data.access_token);
+                  await this.initToken();
+                  // const res = await this.get("/login/refresh");
+                  // this.setAccessToken(res.data.access_token);
                   //console.log('new token: ', res.data.access_token);
                   //вытаскиваем конфиг исходного запроса
                   const config = err.config;
@@ -55,47 +77,53 @@ class JwtService {
                   return this.#authHeader.request(config);
                } catch (err) {
                   //alert('Failed to refresh token')
-                  console.error('Failed to refresh token:', err);
+                  console.error("Failed to refresh token:", err);
                }
             }
             //можно сделать перенаправление на страницу логина
-            console.log('other server error');
+            console.log("other server error");
             return Promise.reject(err);
          }
       );
    }
 
-   async authRequest(method, url, data=null) {
+   async authRequest(method, url, data = null) {
+      // if (!this.#accessToken) {
+      //    await this.initToken();
+      // }
+
       try {
          const res = await this.#authHeader({
             method: method,
             url: url,
-            data: data
+            data: data,
          });
          return res;
       } catch (error) {
-         if (error?.response?.data?.detail && typeof error.response.data.detail === 'string') {
+         if (
+            error?.response?.data?.detail &&
+            typeof error.response.data.detail === "string"
+         ) {
             return error.response.data.detail;
          } else {
-            return 'Произошла ошибка';
+            return "Произошла ошибка";
          }
       }
    }
 
-   get = async (url) => await this.authRequest('get', url);
+   get = async (url) => await this.authRequest("get", url);
 
-   post = async (url, data) => await this.authRequest('post', url, data);
+   post = async (url, data) => await this.authRequest("post", url, data);
 
-   put = async (url, data) => await this.authRequest('put', url, data);
+   put = async (url, data) => await this.authRequest("put", url, data);
 
-   delete = async (url) => await this.authRequest('delete', url);
+   delete = async (url) => await this.authRequest("delete", url);
 
-   patch = async (url, data) => await this.authRequest('patch', url, data);
-
+   patch = async (url, data) => await this.authRequest("patch", url, data);
 }
-
 
 const jwtService = new JwtService();
 jwtService.setResponseInterceptors();
+// await jwtService.initToken();
 
 export default jwtService;

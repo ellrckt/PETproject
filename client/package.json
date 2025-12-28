@@ -24,6 +24,7 @@
    },
    "scripts": {
       "dev": "vite",
+      "dev:user2": "vite --port 3001",
       "build": "vite build",
       "preview": "vite preview"
    },
