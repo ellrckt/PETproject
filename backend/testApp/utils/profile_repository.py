@@ -50,6 +50,9 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             stmt = select(self.model).where(self.model.user_id.in_(user_ids))
             result = await session.execute(stmt)
             user_profiles = result.scalars().all()
+            for profile in user_profiles:
+                await session.refresh(profile)
+
             profiles_list = []
             for profile in user_profiles:
                 profile_dict = {
@@ -60,7 +63,6 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
                     "city": profile.city,
                     "country": profile.country,
                     "about_user": profile.about_user,
-                    "profile_photo_url": profile.profile_photo,
                 }
                 profiles_list.append(profile_dict)
             return profiles_list

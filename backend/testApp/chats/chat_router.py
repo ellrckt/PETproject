@@ -23,20 +23,22 @@ async def get_user_rooms(
         user_rooms = await ws_service.get_user_rooms(user_id) 
         #{"room_id": {"sender_id": user_id,"room_id": room_id,
         #last_message": last_message, "receiver_id": receiver_id}}
+        # {'4_6': {'sender_id': 6, 'room_id': '4_6', 'last_message': {'message': None}, 'receiver_id': 4}}
         receiver_ids = [room["receiver_id"] for room in user_rooms.values()]
+
         receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service, session)
         print(receivers_profiles)
         profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
 
         rooms_with_profiles = {
-            room["room_id"]: {
-                **room,  
-                "username": profiles_by_id[room["receiver_id"]]["username"],
-                "profile_photo_url": profiles_by_id[room["receiver_id"]]["profile_photo_url"],
-                "profile_id": profiles_by_id[room["receiver_id"]]["id"],
+            room_id: {
+                **room_data,  
+                "username": profiles_by_id[room_data["receiver_id"]]["username"],
+                "profile_photo_url": profiles_by_id[room_data["receiver_id"]]["profile_photo_url"],
+                "profile_id": profiles_by_id[room_data["receiver_id"]]["id"],
             }
-            for room in user_rooms 
-            if room["receiver_id"] in profiles_by_id
+            for room_id, room_data in user_rooms.items()  
+            if room_data["receiver_id"] in profiles_by_id
             }
         return rooms_with_profiles
         
@@ -76,8 +78,8 @@ async def websocket_endpoint(
     receiver_id = int(receiver_id)
     sender_id = int(payload["user_id"])
     room_id = ws_service._create_room_id(sender_id, receiver_id,)
-    await ws_service.connect_room(websocket, sender_id, receiver_id)
     sender_username = payload["sub"]
+    history = await ws_service.connect_room(websocket, sender_id, receiver_id, sender_username)
     
     try:
         # await websocket.accept()
