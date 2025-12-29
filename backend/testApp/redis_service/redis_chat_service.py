@@ -56,15 +56,10 @@ class RedisChatManager:
         
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
-            
-            with self.redis.pipeline(transaction=True) as pipe:
-                pipe.rpush(history_key, message_json)
-                
-                pipe.ltrim(history_key, 0, 999)
-                
-                pipe.expire(history_key, 60 * 60 * 24 * 10)
-                
-                pipe.execute()
+            ### Pipeline
+            await self.redis.rpush(history_key, message_json)
+            await self.redis.ltrim(history_key, 0, 999)  
+            await self.redis.expire(history_key, 60 * 60 * 24 * 10)  
             
             return True
             
