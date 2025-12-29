@@ -23,7 +23,7 @@ function ChatWindow({ receiverId, receiverName }) {
 
       ws.onmessage = (event) => {
          const data = JSON.parse(event.data);
-
+         console.log(data)
          if (data.type === 'history') {
             setMessages((prev) => [...prev, data.data]);
          }
