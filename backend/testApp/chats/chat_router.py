@@ -1,5 +1,6 @@
 from typing import Annotated, Dict
-from fastapi import Cookie, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
+from fastapi import Cookie, Body, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
+from idna import decode
 from redis_service.redis_profile_service import RedisJSONProfileService
 from auth.utils import decode_jwt
 from chats.chat_service import WebSocketManager
@@ -91,12 +92,22 @@ async def websocket_endpoint(
 
 @router.post("/translate_message")
 async def translate_message(
-    message_id: str,
-    message_to_translate: str,
     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
+    message_id: str = Body(...),
+    message_to_translate: str = Body(...),
     )->Dict:
     result = await ws_service.translate_message(message_to_translate)
     result["message_id"] = message_id
+    return result
+
+@router.post("/get_context_answer")
+async def get_context_answer(
+    request: Request,
+    ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
+    receiver_id: int = Body(...),
+    )->Dict:
+    user_id= decode_jwt(request.cookies.get("refresh_token"))["user_id"]
+    result = await ws_service.get_context_answer(user_id, receiver_id)
     return result
 
     # @router.get("/get_context_answer")
