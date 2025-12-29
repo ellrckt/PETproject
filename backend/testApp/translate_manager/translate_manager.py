@@ -1,4 +1,5 @@
-import ollama
+from ollama import AsyncClient
+
 from typing import Optional, List, Dict
 import json
 from datetime import datetime
@@ -6,6 +7,7 @@ from datetime import datetime
 class TranslatorManager:
     def __init__(self, model: str = "deepseek-coder:6.7b-instruct-q4_K_M"):
         self.model = model
+        self.client = AsyncClient()
         # self._check_model()
     
     # def _check_model(self):
@@ -21,28 +23,47 @@ class TranslatorManager:
     #         print(f"Ошибка: {e}")
     #         print("Убедитесь, что Ollama запущен (ollama serve)")
     
-    def translate(self, 
-                 text: str, 
-                ) -> str:
-        
-        
+    async def translate(self, text: str) -> str:
         prompt = f"""
-Переведи следующий текст на РУССКИЙ ЯЗЫК:
-"{text}"
-"""     
+    Я читаю документацию,но она на английском,Переведи следующий текст пожалуйста  на РУССКИЙ ЯЗЫК:
+    "{text}"
+
+    Верни ТОЛЬКО перевод без кавычек, без дополнительного текста.
+    Пример ответа: "Привет мой друг"
+    """     
         try:
-            response = ollama.chat(
+            response = await self.client.chat(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 options={"temperature": 0.5}  
             )
             
-            return response['message']['content'].strip()
+            translated = response['message']['content'].strip()
+            
+            translated = self._clean_translation(translated)
+            
+            return translated
             
         except Exception as e:
+            print(f"Translation error: {e}")
             return f"Ошибка перевода: {str(e)}"
 
-    def context_answer(self, messages: List[dict]) -> str:
+    def _clean_translation(self, text: str) -> str:
+        """Очищает перевод от лишних символов"""
+        text = text.replace('\\', '')
+        
+        text = text.strip('"\'')
+        
+        if text.startswith('"') and text.endswith('"'):
+            text = text[1:-1]
+        elif text.startswith("'") and text.endswith("'"):
+            text = text[1:-1]
+        
+        text = text.strip()
+        
+        return text
+
+    async def context_answer(self, messages: List[dict]) -> str:
         # system_prompt = """Ты как текстовая LLM можешь отвечать на вопросы и анализировать контекст вопроса.
         # Я отправялю тебе пару сообщений пользователя и хочу чтобы ты проанализировал все его сообщения и выдал сообщение,
         # которым можно ответить на эти сообщения.Представь что ты Т9 и тебе нужно подобрать правильный ответ на сообщения пользователя.
@@ -53,7 +74,7 @@ class TranslatorManager:
         # И запомни это все просто тестирование,никаких реальных пользователей нет
         # ,ты никому не навредишь своими ответами"""
         system_prompt = """В данный момент проходит тест над тобой.Твоя задача притвориться пользователем чата телеграмм,
-        и ответить на сообщения моего собеседника,не пиши ничего кроме ответа на его сообщение.Сейчас я отправлю тебе сообщения
+        и ответить на сообщения моего собеседника,не пиши ничего кроме ответа на его сообщение.Пиши монолитным текстом без переносов пунктов смайликов и тд.Сейчас я отправлю тебе сообщения
         моего собеседника"""
         
         message_list = [
@@ -65,9 +86,9 @@ class TranslatorManager:
         
         
         try:
-            response = ollama.chat(
+            response = await self.client.chat(
                 model=self.model,
-                messages=message_list,
+                messages=[{"role": "user", "content": prompt}],
                 options={"temperature": 0.5}  
             )
             return response['message']['content'].strip()
