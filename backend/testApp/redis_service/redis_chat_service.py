@@ -24,10 +24,10 @@ class RedisChatManager:
 
     async def _create_room_id(self, room_id: str, sender_id: int, receiver_id: int):
         try:
-            async with self.redis.pipeline(transaction=True) as pipe:
-                await pipe.lpush(room_id, sender_id)
-                await pipe.rpush(room_id, receiver_id)
-                await pipe.execute()
+            with self.redis.pipeline(transaction=True) as pipe:
+                pipe.lpush(room_id, sender_id)
+                pipe.rpush(room_id, receiver_id)
+                pipe.execute()
                 
                 return True
         
@@ -49,7 +49,7 @@ class RedisChatManager:
         try: 
             await self.redis.incr(prefix)
         except Exception as e:
-            return HTTPException(detail="Failed adding message to unread messages") 
+            return HTTPException(status_code=500, detail="Failed adding message to unread messages") 
 
     async def add_history_message(self, room_id: str, message_data: dict):
         history_key = self._create_room_history_prefix(room_id)
@@ -57,14 +57,14 @@ class RedisChatManager:
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
             
-            async with self.redis.pipeline(transaction=True) as pipe:
-                await pipe.rpush(history_key, message_json)
+            with self.redis.pipeline(transaction=True) as pipe:
+                pipe.rpush(history_key, message_json)
                 
-                await pipe.ltrim(history_key, 0, 999)
+                pipe.ltrim(history_key, 0, 999)
                 
-                await pipe.expire(history_key, 60 * 60 * 24 * 10)
+                pipe.expire(history_key, 60 * 60 * 24 * 10)
                 
-                await pipe.execute()
+                pipe.execute()
             
             return True
             

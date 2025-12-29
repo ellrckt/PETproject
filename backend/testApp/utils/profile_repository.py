@@ -50,7 +50,20 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             stmt = select(self.model).where(self.model.user_id.in_(user_ids))
             result = await session.execute(stmt)
             user_profiles = result.scalars().all()
-            return user_profiles
+            profiles_list = []
+            for profile in user_profiles:
+                profile_dict = {
+                    "id": profile.id,
+                    "user_id": profile.user_id,
+                    "username": profile.username,
+                    "age": profile.age,
+                    "city": profile.city,
+                    "country": profile.country,
+                    "about_user": profile.about_user,
+                    "profile_photo_url": profile.profile_photo,
+                }
+                profiles_list.append(profile_dict)
+            return profiles_list
         
     async def search_users_profiles(self, session: AsyncSession, search_filter: str, payload: dict)->List[ProfileSchema]:
         stmt = select(Profile).filter(

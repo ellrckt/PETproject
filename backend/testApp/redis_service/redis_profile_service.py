@@ -100,20 +100,20 @@ class RedisJSONProfileService:
             return False
 
     async def create_profiles_pipeline(self, profiles: List[Profile]):
-        async with self.redis.pipeline() as pipe:
+        with self.redis.pipeline() as pipe:
             for profile in profiles:
                 key = f"profile:{profile.user_id}"
                 pipe.setex(key, self.expire_time, profile)
-            await pipe.execute()
+            pipe.execute()
 
     async def get_profiles_pipeline(self, user_ids: List[int]) -> List[Optional[dict]]:
         keys = [self._get_profile_key(user_id) for user_id in user_ids]
         print(f"Getting profiles for user_ids: {user_ids}")
         print(f"Redis keys: {keys}")
-        async with self.json_client.pipeline() as pipe:
+        with self.json_client.pipeline() as pipe:
             for key in keys:
                 pipe.get(key)
-            results = await pipe.execute()
+            results = pipe.execute()
         print(f"Raw Redis results: {results}")
         decoded_results = []
         for result in results:

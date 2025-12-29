@@ -15,7 +15,7 @@ class WebSocketManager:
     redis_service: RedisChatManager = RedisChatManager()
     translate_manager: TranslatorManager = TranslatorManager()
 
-    def generate_uuid_v4() -> str:
+    def generate_uuid_v4(self) -> str:
         return str(uuid.uuid4())
     
     def _create_room_id(self, sender_id: int, receiver_id: int) -> str:
@@ -93,7 +93,7 @@ class WebSocketManager:
     async def broadcast(self, message: str, room_id: int, sender_id: int, receiver_id: int, sender_username: str):
         
         if room_id in self.active_connections:
-            message_with_class = {"message": message, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now(), "is_viewed": True, "message_id": self.generate_uuid_v4(), "username": sender_username}
+            message_with_class = {"message": message, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now().isoformat(), "is_viewed": True, "message_id": self.generate_uuid_v4(), "username": sender_username}
             
             if receiver_id not in self.active_connections[room_id]:
                 message_with_class["is_viewed"] = False
