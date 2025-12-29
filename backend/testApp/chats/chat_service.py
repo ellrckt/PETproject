@@ -6,7 +6,7 @@ from redis_service.redis_chat_service import RedisChatManager
 from testapp.dependencies import get_redis_chat_service, get_translate_manager
 from translate_manager.translate_manager import TranslatorManager
 import uuid
-
+import json
 class WebSocketManager:
 
     active_connections: Dict[str, Dict[int, WebSocket]] = {}
@@ -53,21 +53,29 @@ class WebSocketManager:
         await self._connect(websocket, sender_id, receiver_id, room_id)
 
     async def connect_room(
-        self, websocket: WebSocket, sender_id: int, receiver_id: int
+        self, websocket: WebSocket, sender_id: int, receiver_id: int, sender_username: str
     ):
         sender_id = int(sender_id)
         history_limit = 50
         room_id = self._create_room_id(sender_id, receiver_id)
         history_messages = await self.redis_service.get_recent_messages(room_id, history_limit)
+        print("History",history_messages)
         for message in history_messages:
             message["is_viewed"] = True
-
         unread_messages_count = await self.redis_service.get_unread_messages(room_id, sender_id)
         if room_id not in self.user_rooms:
             await self._create_room(websocket, sender_id, receiver_id)
         else:
             await self._connect(websocket, sender_id, receiver_id)
-        return {"history": history_messages, "sender_unread_messages_count": unread_messages_count}
+        for message in history_messages:
+            try:
+                await websocket.send_text(json.dumps({
+                    "type": "history",
+                    "data": message
+                }))
+            except Exception as e:
+                print(f"Error sending history: {e}")
+        # return {"history": history_messages, "sender_unread_messages_count": unread_messages_count}
     
     async def delete_room(self, room_id: int, sender_id: int, receiver_id: int):
 
@@ -98,9 +106,10 @@ class WebSocketManager:
             if receiver_id not in self.active_connections[room_id]:
                 message_with_class["is_viewed"] = False
                 await self.redis_service.add_unread_message(room_id, receiver_id)
-                await self.redis_service.add_history_message(room_id, message_with_class)
+                history = await self.redis_service.add_history_message(room_id, message_with_class)
             else:
-                await self.redis_service.add_history_message(room_id, message_with_class)
+                 await self.redis_service.add_history_message(room_id, message_with_class)
+                
             for user_id, connection in self.active_connections[room_id].items():
                 await connection.send_json(message_with_class)
 

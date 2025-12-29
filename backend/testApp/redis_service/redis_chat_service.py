@@ -56,15 +56,10 @@ class RedisChatManager:
         
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
-            
-            with self.redis.pipeline(transaction=True) as pipe:
-                pipe.rpush(history_key, message_json)
-                
-                pipe.ltrim(history_key, 0, 999)
-                
-                pipe.expire(history_key, 60 * 60 * 24 * 10)
-                
-                pipe.execute()
+            ### Pipeline
+            await self.redis.rpush(history_key, message_json)
+            await self.redis.ltrim(history_key, 0, 999)  
+            await self.redis.expire(history_key, 60 * 60 * 24 * 10)  
             
             return True
             
@@ -116,7 +111,6 @@ class RedisChatManager:
         
         try:
             messages_json = await self.redis.lrange(history_key, -n, -1)
-            
             messages = []
             for msg_json in messages_json:
                 try:
@@ -125,7 +119,8 @@ class RedisChatManager:
                     continue
             
             return messages
-            
+    
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

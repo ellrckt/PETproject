@@ -74,10 +74,10 @@ class TranslatorManager:
         except Exception as e:
             return f"Ошибка: {str(e)}"
 
-c = [{"message": "Привет,Даник!", "date": datetime.now()},
-     {"message": "Я тут вчера выиграл волейбольный матч в школе,круто,да?", "date": datetime.now()},
-     {"message": "А еще у меня есть классная идея на выходные,не хочешь вместе в кино сходить?", "date": datetime.now()},
-     ]
+# c = [{"message": "Привет,Даник!", "date": datetime.now()},
+#      {"message": "Я тут вчера выиграл волейбольный матч в школе,круто,да?", "date": datetime.now()},
+#      {"message": "А еще у меня есть классная идея на выходные,не хочешь вместе в кино сходить?", "date": datetime.now()},
+#      ]
 
 
 # a = TranslatorManager()
