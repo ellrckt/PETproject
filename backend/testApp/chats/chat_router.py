@@ -25,6 +25,7 @@ async def get_user_rooms(
         #last_message": last_message, "receiver_id": receiver_id}}
         # {'4_6': {'sender_id': 6, 'room_id': '4_6', 'last_message': {'message': None}, 'receiver_id': 4}}
         receiver_ids = [room["receiver_id"] for room in user_rooms.values]
+
         receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service)
         profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
 
@@ -58,6 +59,7 @@ async def get_user_rooms(
         return {f"{user_id}": []}
 
 
+
 @router.websocket("/ws/{receiver_id}")
 async def websocket_endpoint(
     websocket: WebSocket, 
@@ -77,13 +79,14 @@ async def websocket_endpoint(
     room_id = ws_service._create_room_id(sender_id, receiver_id,)
     await ws_service.connect_room(websocket, sender_id, receiver_id)
     sender_username = payload["sub"]
+    
     try:
-        await websocket.accept()
+        # await websocket.accept()
         while True:
             data = await websocket.receive_text()
             await ws_service.broadcast(data, room_id, sender_id, receiver_id, sender_username)
     except WebSocketDisconnect:
-        ws_service.disconnect(room_id, sender_id)
+        ws_service._disconnect(room_id, sender_id)
 
 @router.post("/translate_message")
 async def translate_message(

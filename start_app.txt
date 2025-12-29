@@ -1,10 +1,9 @@
 Server:
-
 http://localhost:8080/browser/ - pgadmin
 http://127.0.0.1:8000/docs - back docs
 
 cd backend
-venv/Scripts/Activate.ps1 
+venv/Scripts/Activate.ps1
 cd testApp
 
 если были изменения в бд
@@ -25,9 +24,9 @@ uvicorn main:app --reload - запуск приложения
 Client:
 http://localhost:3000/ - react app
 
-cd my-react-app
+cd client
 
-если были изменения в зависимостях
+если были изменения в зависимостях / установка всех зависимостей клиента
 npm install
 
-npm start
+npm run dev

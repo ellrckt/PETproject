@@ -133,6 +133,6 @@ class RedisChatManager:
         history_key = self._create_room_history_prefix(room_id)
         last_message = await self.redis.lindex(history_key, -1)
         if not last_message:
-            return {"message": None}
+            return {'message': None}
         json_message = json.loads(last_message)
         return json_message

@@ -10,6 +10,7 @@ from start_app import start_app
 
 app = start_app(create_custom_static_urls=True)
 
+
 # origins = [
 #     "http://127.0.0.1:5173",
 #     "http://localhost:5173",

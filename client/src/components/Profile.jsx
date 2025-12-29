@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
 
 import Button from "./UI/Button";
 import Input from "./UI/Input";
@@ -26,7 +27,7 @@ function Profile() {
    }, []);
 
    const getHobbiesList = async () => {
-      const res = await reqService.get("/profile/get_hobbies");
+      const res = await reqService.get("/profile/get_habits");
       setHobbiesList(res.data);
    };
 
@@ -34,8 +35,18 @@ function Profile() {
       await reqService.patch("/profile/update_profile", data);
    };
 
+   // const profile = useSelector(state => state.profile);
+
+   const getUserId = async () => {
+      const res = await reqService.get('user/get_current_user');
+      return res.data.user_id;
+   }
+
    const getProfile = async () => {
-      const res = await reqService.get("profile/get_user_profile");
+      const profile = await getUserId();
+
+      const res = await reqService.get(`profile/profiles/${profile}`);
+
       try {
          setName(res.data.username || "");
          setAge(res.data.age || "");
@@ -51,16 +62,20 @@ function Profile() {
 
    const uploadUserImage = async (image) => {
       const formData = new FormData();
-      formData.append('file', image);
-      await reqService.post('/profile/upload_user_profile_photo', formData);
-   }
+      formData.append("file", image);
+      await reqService.post("/profile/upload_user_profile_photo", formData);
+   };
 
    return (
       <div className="min-h-screen bg-gray-50">
          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md shadow-stone-300 p-8 mt-10">
             <div className="flex flex-col md:flex-row gap-8">
                <div className="w-full md:w-1/3 flex flex-col items-center">
-                  <PhotoLoader placeholder={"Upload photo"} state={image} setState={setImage}/>
+                  <PhotoLoader
+                     placeholder={"Upload photo"}
+                     state={image}
+                     setState={setImage}
+                  />
                </div>
 
                <div className="w-full md:w-2/3">
@@ -107,7 +122,8 @@ function Profile() {
                                     about_user: about,
                                     user_habits: userHobbies,
                                  });
-                                 if (typeof image !== 'string') uploadUserImage(image);
+                                 if (typeof image !== "string")
+                                    uploadUserImage(image);
                               }}
                            >
                               Save
@@ -122,8 +138,6 @@ function Profile() {
                            </h2>
                            <div className="w-24 h-1 bg-stone-500 mx-auto mt-3 rounded-full"></div>
                         </div>
-
-
 
                         <div className="space-y-6">
                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
