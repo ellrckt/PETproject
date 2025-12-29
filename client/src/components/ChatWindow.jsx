@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import Input from "./UI/Input";
 import Button from "./UI/Button";
-import { CloudCog } from "lucide-react";
+import reqService from "../API/RequestService";
 
 function ChatWindow({ receiverId, receiverName }) {
    const [message, setMessage] = useState("");
    const [messages, setMessages] = useState([]);
    const [isConnected, setIsConnected] = useState(false);
+   const [translatingIds, setTranslatingIds] = useState(new Set());
 
    const wsRef = useRef(null);
    const messagesEndRef = useRef(null);
@@ -24,11 +25,9 @@ function ChatWindow({ receiverId, receiverName }) {
       ws.onmessage = (event) => {
          const data = JSON.parse(event.data);
 
-         if (data.type === 'history') {
+         if (data.type === "history") {
             setMessages((prev) => [...prev, data.data]);
-         }
-
-         else if (data.message) {
+         } else if (data.message) {
             setMessages((prev) => [...prev, data]);
          }
       };
@@ -54,6 +53,33 @@ function ChatWindow({ receiverId, receiverName }) {
          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
    }, [messages]);
+
+   const translateMessage = async (messageId, text) => {
+      setTranslatingIds((prev) => new Set([...prev, messageId]));
+
+      try {
+         const data = await reqService.post("/chats/translate_message", {
+            message_id: messageId,
+            message_to_translate: text,
+         });
+
+         setMessages((prev) =>
+            prev.map((msg) =>
+               msg.message_id === data.message_id
+                  ? { ...msg, message: data.translation, is_translated: true }
+                  : msg
+            )
+         );
+      } catch (error) {
+         console.error("Translation error:", error);
+      } finally {
+         setTranslatingIds((prev) => {
+            const newSet = new Set([...prev]);
+            newSet.delete(messageId);
+            return newSet;
+         });
+      }
+   };
 
    const sendMessage = () => {
       if (!message.trim()) return;
@@ -118,11 +144,32 @@ function ChatWindow({ receiverId, receiverName }) {
                            {msg.sender_id === receiverId ? receiverName : "You"}
                         </div>
                         <div className="mb-1">{msg.message}</div>
-                        <div className="text-xs opacity-70">
-                           {formatDate(msg.date)}
-                           {msg.is_viewed === false && (
-                              <span className="ml-2">• Unread</span>
-                           )}
+                        <div className="flex justify-between items-center">
+                           <div className="text-xs opacity-70">
+                              {formatDate(msg.date)}
+                              {msg.is_viewed === false && (
+                                 <span className="ml-2">• Unread</span>
+                              )}
+                           </div>
+                           {!msg.is_translated &&
+                              msg.sender_id === receiverId && (
+                                 <button
+                                    onClick={() =>
+                                       translateMessage(
+                                          msg.message_id,
+                                          msg.message
+                                       )
+                                    }
+                                    disabled={translatingIds.has(
+                                       msg.message_id
+                                    )}
+                                    className="ml-2 text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                 >
+                                    {translatingIds.has(msg.message_id)
+                                       ? "Translating..."
+                                       : "Translate"}
+                                 </button>
+                              )}
                         </div>
                      </div>
                   </div>
