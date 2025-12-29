@@ -91,10 +91,12 @@ async def websocket_endpoint(
 
 @router.post("/translate_message")
 async def translate_message(
+    message_id: str,
     message_to_translate: str,
     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
     )->Dict:
-    result = ws_service.translate_message(message_to_translate)
+    result = await ws_service.translate_message(message_to_translate)
+    result["message_id"] = message_id
     return result
 
     # @router.get("/get_context_answer")
