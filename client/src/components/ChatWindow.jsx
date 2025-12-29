@@ -59,13 +59,13 @@ function ChatWindow({ receiverId, receiverName }) {
 
       try {
          const data = await reqService.post("/chats/translate_message", {
-            message_id: messageId,
+            message_id: messageId.toString(),
             message_to_translate: text,
          });
 
          setMessages((prev) =>
             prev.map((msg) =>
-               msg.message_id === data.message_id
+               msg.message_id == data.message_id
                   ? { ...msg, message: data.translation, is_translated: true }
                   : msg
             )
@@ -156,7 +156,7 @@ function ChatWindow({ receiverId, receiverName }) {
                                  <button
                                     onClick={() =>
                                        translateMessage(
-                                          msg.message_id,
+                                          msg.message_id.toString(),
                                           msg.message
                                        )
                                     }
