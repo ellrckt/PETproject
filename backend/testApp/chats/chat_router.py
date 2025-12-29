@@ -21,8 +21,7 @@ async def get_user_rooms(
         user_rooms = await ws_service.get_user_rooms(user_id) 
         #{"room_id": {"sender_id": user_id,"room_id": room_id,
         #last_message": last_message, "receiver_id": receiver_id}}
-
-        receiver_ids = [room["receiver_id"] for room in user_rooms]
+        receiver_ids = [room["receiver_id"] for room in user_rooms.values()]
         receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service)
         profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
 
@@ -78,12 +77,12 @@ async def websocket_endpoint(
     sender_username = payload["sub"]
     
     try:
-        await websocket.accept()
+        # await websocket.accept()
         while True:
             data = await websocket.receive_text()
             await ws_service.broadcast(data, room_id, sender_id, receiver_id, sender_username)
     except WebSocketDisconnect:
-        ws_service.disconnect(room_id, sender_id)
+        ws_service._disconnect(room_id, sender_id)
 
 @router.post("/translate_message")
 async def translate_message(

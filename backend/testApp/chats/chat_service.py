@@ -35,11 +35,20 @@ class WebSocketManager:
     async def _create_room(
         self, websocket: WebSocket, sender_id: int, receiver_id: int
     ):
-
         room_id = self._create_room_id(sender_id, receiver_id)
+        
+        if sender_id not in self.user_rooms:
+            self.user_rooms[sender_id] = set()
+            
+        if receiver_id not in self.user_rooms:
+            self.user_rooms[receiver_id] = set()
+        
+        if room_id not in self.rooms:
+            self.rooms[room_id] = []    
+        
         self.rooms[room_id].append(sender_id)
         self.rooms[room_id].append(sender_id)
-        self.user_rooms[sender_id].add(room_id)
+        self.user_rooms[sender_id].add(room_id)   
         self.user_rooms[receiver_id].add(room_id)
         await self._connect(websocket, sender_id, receiver_id, room_id)
 
@@ -55,7 +64,7 @@ class WebSocketManager:
 
         unread_messages_count = await self.redis_service.get_unread_messages(room_id, sender_id)
         if room_id not in self.user_rooms:
-            self._create_room(websocket, sender_id, receiver_id)
+            await self._create_room(websocket, sender_id, receiver_id)
         else:
             await self._connect(websocket, sender_id, receiver_id)
         return {"history": history_messages, "sender_unread_messages_count": unread_messages_count}
