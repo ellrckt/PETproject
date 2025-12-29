@@ -101,7 +101,7 @@ class WebSocketManager:
     async def broadcast(self, message: str, room_id: int, sender_id: int, receiver_id: int, sender_username: str):
         
         if room_id in self.active_connections:
-            message_with_class = {"message": message, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now().isoformat(), "is_viewed": True, "message_id": self.generate_uuid_v4(), "username": sender_username}
+            message_with_class = {"message": message,"room_id": room_id, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now().isoformat(), "is_viewed": True, "message_id": self.generate_uuid_v4(), "username": sender_username}
             
             if receiver_id not in self.active_connections[room_id]:
                 message_with_class["is_viewed"] = False
@@ -129,14 +129,14 @@ class WebSocketManager:
             
     async def get_context_answer(self, messages: Dict, room_id: str, receiver_id: int)->Dict:
 
-        unread_messages_count = await self.redis_service.add_unread_message(room_id, receiver_id)
+        unread_messages_count = await self.redis_service.get_unread_message(room_id, receiver_id)
         unread_messages = await self.redis_service.get_last_n_messages(room_id, unread_messages_count)
-        context_answer = self.translate_manager.context_answer(unread_messages)
+        context_answer = await self.translate_manager.context_answer(unread_messages)
 
         return {"answer": context_answer}
     
-    def translate_message(self, message: str):
-        translation = self.translate_manager.translate(message)
+    async def translate_message(self, message: str):
+        translation = await self.translate_manager.translate(message)
         return {"translation": translation}
         # async def _get_room_history(self, room_id: str):
     #     history_messages =  await self.redis_service.get_recent_messages(room_id)
