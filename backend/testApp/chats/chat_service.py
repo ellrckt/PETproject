@@ -35,8 +35,13 @@ class WebSocketManager:
     async def _create_room(
         self, websocket: WebSocket, sender_id: int, receiver_id: int
     ):
-
         room_id = self._create_room_id(sender_id, receiver_id)
+        if room_id not in self.rooms:
+            self.rooms[room_id] = []
+        if sender_id not in self.user_rooms:
+            self.user_rooms[sender_id] = set()
+        if receiver_id not in self.user_rooms:
+            self.user_rooms[receiver_id] = set()     
         self.rooms[room_id].append(sender_id)
         self.rooms[room_id].append(sender_id)
         self.user_rooms[sender_id].add(room_id)

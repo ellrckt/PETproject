@@ -5,7 +5,8 @@ from auth.utils import decode_jwt
 from chats.chat_service import WebSocketManager
 from testapp.dependencies import get_ws_service, profile_service, redis_json_service
 from services.profile import ProfileService
-
+from db.db import db_helper
+from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(prefix='/chats',tags=['ws'])
 
 @router.get("/get_user_rooms")
@@ -13,7 +14,8 @@ async def get_user_rooms(
     request: Request,
     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
-    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)]
+    redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
+    session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
     refresh_token = request.cookies.get("refresh_token")
     user_id = decode_jwt(refresh_token)["user_id"]
@@ -21,8 +23,8 @@ async def get_user_rooms(
         user_rooms = await ws_service.get_user_rooms(user_id) 
         #{"room_id": {"sender_id": user_id,"room_id": room_id,
         #last_message": last_message, "receiver_id": receiver_id}}
-
-        receiver_ids = [room["receiver_id"] for room in user_rooms]
+        # {'4_6': {'sender_id': 6, 'room_id': '4_6', 'last_message': {'message': None}, 'receiver_id': 4}}
+        receiver_ids = [room["receiver_id"] for room in user_rooms.values]
         receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service)
         profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
 
