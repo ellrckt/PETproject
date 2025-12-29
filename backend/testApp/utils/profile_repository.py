@@ -60,7 +60,7 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
                     "city": profile.city,
                     "country": profile.country,
                     "about_user": profile.about_user,
-                    "profile_photo_url": profile.profile_photo_url,
+                    "profile_photo_url": profile.profile_photo,
                 }
                 profiles_list.append(profile_dict)
             return profiles_list

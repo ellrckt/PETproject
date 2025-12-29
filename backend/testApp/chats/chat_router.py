@@ -27,6 +27,7 @@ async def get_user_rooms(
         receiver_ids = [room["receiver_id"] for room in user_rooms.values()]
 
         receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service, session)
+        print(receivers_profiles)
         profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
 
         rooms_with_profiles = {
