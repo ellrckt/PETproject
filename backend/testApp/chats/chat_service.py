@@ -130,9 +130,10 @@ class WebSocketManager:
     async def get_context_answer(self, sender_id: int, receiver_id: int)->Dict:
         room_id = self._create_room_id(sender_id,receiver_id)
         unread_messages_count = await self.redis_service.get_unread_messages(room_id, receiver_id)
-        print("UNREAD: ",unread_messages_count)
-        unread_messages = await self.redis_service.get_last_n_messages(room_id, unread_messages_count)
-        context_answer = await self.translate_manager.context_answer(unread_messages)
+        unread_messages = await self.redis_service.get_last_n_messages(room_id, 5)
+        print("UNREAD", unread_messages)
+
+        context_answer = await self.translate_manager.context_answer(unread_messages, sender_id)
 
         return {"answer": context_answer}
     

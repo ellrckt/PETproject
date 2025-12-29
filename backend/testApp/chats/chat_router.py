@@ -1,10 +1,5 @@
 from typing import Annotated, Dict
-<<<<<<< HEAD
 from fastapi import Cookie, Body, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
-from idna import decode
-=======
-from fastapi import Body, Cookie, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
->>>>>>> 8a9bbb749eb0d9d93cc18871de78456926b57621
 from redis_service.redis_profile_service import RedisJSONProfileService
 from auth.utils import decode_jwt
 from chats.chat_service import WebSocketManager
@@ -102,6 +97,7 @@ async def translate_message(
     )->Dict:
     result = await ws_service.translate_message(message_to_translate)
     result["message_id"] = message_id
+    print(result)
     return result
 
 @router.post("/get_context_answer")

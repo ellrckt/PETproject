@@ -110,7 +110,7 @@ class RedisChatManager:
     async def get_last_n_messages(self, room_id: str, n: int = 3):
 
         history_key = self._create_room_history_prefix(room_id)
-        
+        print(history_key)
         try:
             messages_json = await self.redis.lrange(history_key, -n, -1)
             messages = []
@@ -119,7 +119,7 @@ class RedisChatManager:
                     messages.append(json.loads(msg_json))
                 except json.JSONDecodeError:
                     continue
-            
+            print("MESSAGES", messages)
             return messages
     
 
