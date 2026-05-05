@@ -1,4 +1,4 @@
-function ChatsListItem({ userImageLink, contactUserName, numberOfUnreadMessages,  }) {
+function ChatsListItem({ userImageLink, contactUserName, numberOfUnreadMessages  }) {
    return (
       <div className="flex items-center p-4 hover:bg-stone-100 cursor-pointer">
          <div className="mr-3">
