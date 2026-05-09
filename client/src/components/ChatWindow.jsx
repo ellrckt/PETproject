@@ -62,6 +62,14 @@ function ChatWindow({ receiverId, receiverName }) {
             message_id: messageId.toString(),
             message_to_translate: text,
          });
+         
+         if (!res || !res.data) {
+            console.error("Некорректный ответ от сервера");
+            return;
+         }
+
+         const data = res.data;
+         console.log("Данные перевода:", data);
 
          console.log("🔍 Ответ от сервера:", res);
 
@@ -75,12 +83,6 @@ function ChatWindow({ receiverId, receiverName }) {
 
          setMessages((prev) =>
             prev.map((msg) => {
-               console.log("Сравнение ID:", {
-                  msgId: msg.message_id,
-                  dataId: data.message_id,
-                  равны: String(msg.message_id) === String(data.message_id),
-               });
-
                return String(msg.message_id) === String(data.message_id)
                   ? { ...msg, message: data.translation, is_translated: true }
                   : msg;
