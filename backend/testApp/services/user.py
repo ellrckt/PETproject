@@ -1,7 +1,6 @@
 from typing import Tuple
 
 from fastapi import Request, UploadFile
-from geopy.geocoders import Nominatim
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.utils import decode_jwt
