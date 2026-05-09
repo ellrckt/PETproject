@@ -1,10 +1,10 @@
 from repository.user import UserRepository, SQLAlchemyUserCRUDRepository
 from repository.auth import AuthRepository
 from repository.profile import ProfileRepository
-from repository.location import LocationRepository
+# from repository.location import LocationRepository
 from repository.subscription import SubscriptionRepository
 
-from services.location import LocationService
+# from services.location import LocationService
 from services.user import UserService, UserCRUDService
 from services.auth import AuthService
 from services.profile import ProfileService
@@ -22,8 +22,8 @@ def redis_json_service() -> RedisJSONProfileService:
     return RedisJSONProfileService()
 
 
-def location_service():
-    return LocationService(LocationRepository)
+# def location_service():
+#     return LocationService(LocationRepository)
 
 
 def profile_service():

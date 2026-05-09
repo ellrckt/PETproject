@@ -71,6 +71,16 @@ function ChatWindow({ receiverId, receiverName }) {
          const data = res.data;
          console.log("Данные перевода:", data);
 
+         console.log("🔍 Ответ от сервера:", res);
+
+         if (!res || !res.data) {
+            console.error("Некорректный ответ от сервера");
+            return;
+         }
+
+         const data = res.data;
+         console.log("Данные перевода:", data);
+
          setMessages((prev) =>
             prev.map((msg) => {
                return String(msg.message_id) === String(data.message_id)

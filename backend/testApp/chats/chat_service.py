@@ -59,10 +59,10 @@ class WebSocketManager:
         history_limit = 50
         room_id = self._create_room_id(sender_id, receiver_id)
         history_messages = await self.redis_service.get_recent_messages(room_id, history_limit)
-        print("History",history_messages)
         for message in history_messages:
             message["is_viewed"] = True
         unread_messages_count = await self.redis_service.get_unread_messages(room_id, sender_id)
+        print(unread_messages_count)
         if room_id not in self.user_rooms:
             await self._create_room(websocket, sender_id, receiver_id)
         else:
@@ -127,11 +127,13 @@ class WebSocketManager:
         except KeyError:
             raise KeyError
             
-    async def get_context_answer(self, messages: Dict, room_id: str, receiver_id: int)->Dict:
+    async def get_context_answer(self, sender_id: int, receiver_id: int)->Dict:
+        room_id = self._create_room_id(sender_id,receiver_id)
+        unread_messages_count = await self.redis_service.get_unread_messages(room_id, receiver_id)
+        unread_messages = await self.redis_service.get_last_n_messages(room_id, 5)
+        print("UNREAD", unread_messages)
 
-        unread_messages_count = await self.redis_service.get_unread_message(room_id, receiver_id)
-        unread_messages = await self.redis_service.get_last_n_messages(room_id, unread_messages_count)
-        context_answer = await self.translate_manager.context_answer(unread_messages)
+        context_answer = await self.translate_manager.context_answer(unread_messages, sender_id)
 
         return {"answer": context_answer}
     

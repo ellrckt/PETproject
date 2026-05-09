@@ -19,7 +19,6 @@ class RedisChatManager:
             db=redis_db,
             decode_responses=True,
             socket_connect_timeout=5,
-            retry_on_timeout=True,
         )
 
     async def _create_room_id(self, room_id: str, sender_id: int, receiver_id: int):
@@ -40,16 +39,19 @@ class RedisChatManager:
         prefix = f"{room_prefix}:history"
         return prefix
     
-    def _create_unread_messages_prefix(self, room_id: int, receiver_id: int):
+    def _create_unread_messages_prefix(self, room_id: str, receiver_id: int):
         prefix = f"{room_id}:{receiver_id}:unread_messages"
+        return prefix
     
-    async def add_unread_message(self,room_id: int, receiver_id: int):
+    async def add_unread_message(self,room_id: str, receiver_id: int):
 
         prefix = self._create_unread_messages_prefix(room_id, receiver_id)
         try: 
             await self.redis.incr(prefix)
+            await self.redis.expire(prefix, 60*60*24*30)
         except Exception as e:
-            return HTTPException(status_code=500, detail="Failed adding message to unread messages") 
+            print(f"Redis error in add_unread_message: {e}")
+            return False
 
     async def add_history_message(self, room_id: str, message_data: dict):
         history_key = self._create_room_history_prefix(room_id)
@@ -67,11 +69,11 @@ class RedisChatManager:
             return HTTPException(status_code=500, detail="Adding message to the history error")
     
     
-    async def get_unread_messages(self,room_id: int, sender_id: int):
+    async def get_unread_messages(self,room_id: str, sender_id: int):
 
         prefix = self._create_unread_messages_prefix(room_id, sender_id)
         try:
-            value = await self.redis.get("prefix")
+            value = await self.redis.get(prefix)
 
             if value:
                 count = int(value)
@@ -82,7 +84,7 @@ class RedisChatManager:
         
             
         except Exception as e:
-            return HTTPException(status_code=500, detail="Unread data receiving error")
+            raise HTTPException(status_code=500, detail="Unread data receiving error")
         
     
 
@@ -108,7 +110,7 @@ class RedisChatManager:
     async def get_last_n_messages(self, room_id: str, n: int = 3):
 
         history_key = self._create_room_history_prefix(room_id)
-        
+        print(history_key)
         try:
             messages_json = await self.redis.lrange(history_key, -n, -1)
             messages = []
@@ -117,17 +119,30 @@ class RedisChatManager:
                     messages.append(json.loads(msg_json))
                 except json.JSONDecodeError:
                     continue
-            
+            print("MESSAGES", messages)
             return messages
     
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_last_message(self, room_id: int):
+    async def get_last_message(self, room_id: str):
         history_key = self._create_room_history_prefix(room_id)
         last_message = await self.redis.lindex(history_key, -1)
         if not last_message:
             return {'message': None}
         json_message = json.loads(last_message)
         return json_message
+    
+# async def test_redis():
+#     a = RedisChatManager() 
+#     await a.add_unread_message("42_36", 36)
+#     await a.add_unread_message("42_36", 36)
+#     await a.add_unread_message("42_36", 36)
+    
+#     count = await a.get_unread_messages("42_36", 36)
+#     print(f"Unread messages count: {count}")
+
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(test_redis())
