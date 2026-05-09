@@ -58,17 +58,25 @@ function ChatWindow({ receiverId, receiverName }) {
       setTranslatingIds((prev) => new Set([...prev, messageId]));
 
       try {
-         const data = await reqService.post("/chats/translate_message", {
+         const res = await reqService.post("/chats/translate_message", {
             message_id: messageId.toString(),
             message_to_translate: text,
          });
+         
+         if (!res || !res.data) {
+            console.error("Некорректный ответ от сервера");
+            return;
+         }
+
+         const data = res.data;
+         console.log("Данные перевода:", data);
 
          setMessages((prev) =>
-            prev.map((msg) =>
-               msg.message_id == data.message_id
+            prev.map((msg) => {
+               return String(msg.message_id) === String(data.message_id)
                   ? { ...msg, message: data.translation, is_translated: true }
-                  : msg
-            )
+                  : msg;
+            })
          );
       } catch (error) {
          console.error("Translation error:", error);

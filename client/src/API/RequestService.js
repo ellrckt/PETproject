@@ -5,6 +5,7 @@ class RequestService {
    #requestHeader = axios.create({
       baseURL: this.#baseUrl,
       withCredentials: true,
+      timeout: 60000,
    });
 
    constructor() {
