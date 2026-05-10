@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addInfo } from './../store/profile/profileSlice';
-
 import reqService from "../API/RequestService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
-
-import useLocation from "../hooks/useLocation";
+//import useLocation from "../hooks/useLocation";
 import jwtService from "../API/JwtService";
 
 function RegistForm() {
@@ -21,7 +19,7 @@ function RegistForm() {
 
    const nav = useNavigate();
 
-   const coords = useLocation();
+   // const coords = useLocation();
 
    async function registUser(username, email, password, repeatPassword) {
       const res = await reqService.post("/registration", {
@@ -43,14 +41,19 @@ function RegistForm() {
          })
       );
 
-      if (typeof res === "string") {
-         setError(res);
-      } else {
-         await reqService.post("/user_location/set_user_lat_lng", coords);
-         // user coords are in db, localstorage - alternative
-         //localStorage.setItem('location', JSON.stringify(userLocation.data));
-         nav("/home");
-      }
+      nav("/home");
+
+      // user location
+      // if (typeof res === "string") {
+      //    setError(res);
+      // } else {
+      //    await reqService.post("/user_location/set_user_lat_lng", coords);
+      //    // user coords are in db, localstorage - alternative
+      //    //localStorage.setItem('location', JSON.stringify(userLocation.data));
+      //    nav("/home");
+      // }
+
+      
    }
 
    return (
