@@ -21,27 +21,28 @@ class AbstractProfileRepository(ABC):
 
 
 class SQLAlchemyProfileRepository(AbstractProfileRepository):
-
     model = Profile
 
     async def get_user_profile(self, session: AsyncSession, user_id: int):
-        # stmt = select(User).where(User.email == email)
-        async with session as session:
-            # result = await session.execute(stmt)
-            # user = result.scalar_one_or_none()
-            # if user is None:
-            #     raise HTTPException(status_code=400, detail="Not such user")
-            # user_id = user.id
-            stmt = select(self.model).where(self.model.user_id == user_id)
-            result = await session.execute(stmt)
-            stmt = select(UserPhoto.url).where(UserPhoto.user_id == user_id)
-            photo = await session.execute(stmt)
-            url = photo.scalar_one_or_none()
-            print(f"URL: {url}")
-            profile = result.scalar_one_or_none()
-            result = {k: v for k, v in result.items() if not k.startswith("_")}
-            result["profile_photo_url"] = url
-        return result
+        stmt = select(self.model).where(self.model.user_id == user_id)
+        result = await session.execute(stmt)
+        profile = result.scalar_one_or_none()
+        
+        if profile is None:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        stmt_photo = select(UserPhoto.url).where(UserPhoto.user_id == user_id)
+        photo_result = await session.execute(stmt_photo)
+        photo_url = photo_result.scalar_one_or_none()
+        
+        profile_dict = {
+            k: v for k, v in profile.__dict__.items() 
+            if not k.startswith("_") and k != "id"
+        }
+        
+        profile_dict["profile_photo_url"] = photo_url
+        
+        return profile_dict
 
     async def get_user_profiles(
         self, user_ids: int, session: AsyncSession
