@@ -10,7 +10,7 @@ from services.auth import AuthService
 from services.profile import ProfileService
 from services.subscription import SubscriptionService
 
-from translate_manager.translate_manager import TranslatorManager
+# from translate_manager.translate_manager import TranslatorManager
 from redis_service.redis_profile_service import RedisJSONProfileService
 from redis_service.redis_chat_service import RedisChatManager
 
@@ -48,7 +48,7 @@ def get_ws_service():
 def get_redis_chat_service():
     return RedisChatManager()
 
-def get_translate_manager():
-    return TranslatorManager()
+# def get_translate_manager():
+#     return TranslatorManager()
 
     
