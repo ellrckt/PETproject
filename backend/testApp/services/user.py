@@ -10,7 +10,7 @@ from schemas.profiles.profile import UpdateProfile
 from schemas.token.token import TokenInfo
 from schemas.user.user import UserLogin, UserRegistration, UserUpdate
 from utils.user_repository import AbstractUserCRUDRepository, AbstractUserRepository
-from s3.s3_client import s3_client
+# from s3.s3_client import s3_client
 
 
 class UserCRUDService:
