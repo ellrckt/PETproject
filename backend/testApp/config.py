@@ -23,6 +23,7 @@ class AuthJWT(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra='ignore'
 
 class Settings(BaseSettings):
 
@@ -31,6 +32,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra="ignore"
 
 class DataBase(BaseSettings):
     url: str = "postgresql+asyncpg://admin:admin@db:5432/pet_db"
