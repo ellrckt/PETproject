@@ -3,8 +3,8 @@ from datetime import datetime
 from fastapi import WebSocket,WebSocketDisconnect,Depends
 from typing import Annotated
 from redis_service.redis_chat_service import RedisChatManager
-from testapp.dependencies import get_redis_chat_service, get_translate_manager
-from translate_manager.translate_manager import TranslatorManager
+from testapp.dependencies import get_redis_chat_service #, get_translate_manager
+# from translate_manager.translate_manager import TranslatorManager
 import uuid
 import json
 class WebSocketManager:
@@ -13,7 +13,7 @@ class WebSocketManager:
     rooms: Dict[str, List[int]] ={}
     user_rooms: Dict[int, Set[str]] ={}
     redis_service: RedisChatManager = RedisChatManager()
-    translate_manager: TranslatorManager = TranslatorManager()
+    # translate_manager: TranslatorManager = TranslatorManager()
 
     def generate_uuid_v4(self) -> str:
         return str(uuid.uuid4())
@@ -127,21 +127,21 @@ class WebSocketManager:
         except KeyError:
             raise KeyError
             
-    async def get_context_answer(self, sender_id: int, receiver_id: int)->Dict:
-        room_id = self._create_room_id(sender_id,receiver_id)
-        unread_messages_count = await self.redis_service.get_unread_messages(room_id, receiver_id)
-        unread_messages = await self.redis_service.get_last_n_messages(room_id, 5)
-        print("UNREAD", unread_messages)
+    # async def get_context_answer(self, sender_id: int, receiver_id: int)->Dict:
+    #     room_id = self._create_room_id(sender_id,receiver_id)
+    #     unread_messages_count = await self.redis_service.get_unread_messages(room_id, receiver_id)
+    #     unread_messages = await self.redis_service.get_last_n_messages(room_id, 5)
+    #     print("UNREAD", unread_messages)
 
-        context_answer = await self.translate_manager.context_answer(unread_messages, sender_id)
+    #     context_answer = await self.translate_manager.context_answer(unread_messages, sender_id)
 
-        return {"answer": context_answer}
+    #     return {"answer": context_answer}
     
-    async def translate_message(self, message: str):
-        translation = await self.translate_manager.translate(message)
-        return {"translation": translation}
-        # async def _get_room_history(self, room_id: str):
-    #     history_messages =  await self.redis_service.get_recent_messages(room_id)
-    #     return history_messages
+    # async def translate_message(self, message: str):
+    #     translation = await self.translate_manager.translate(message)
+    #     return {"translation": translation}
+    #     # async def _get_room_history(self, room_id: str):
+    # #     history_messages =  await self.redis_service.get_recent_messages(room_id)
+    # #     return history_messages
 
        

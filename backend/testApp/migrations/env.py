@@ -13,6 +13,7 @@ from models.profiles import Profile
 from models.habits import Habits
 from models.file import UserPhoto
 from models.subscription import Subscription
+from config import db
 from alembic import context
 
 config = context.config
@@ -21,7 +22,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 config.set_main_option(
-    "sqlalchemy.url", "postgresql+asyncpg://admin:admin@localhost:5432/pet_db"
+    "sqlalchemy.url", f"{db.url}"
 )
 target_metadata = Base.metadata
 

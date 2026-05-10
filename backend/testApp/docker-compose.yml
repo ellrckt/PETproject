@@ -1,7 +1,12 @@
 services:
   db:
     image: postgis/postgis:13-3.3 
-    restart: always                 
+    restart: always  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d pet_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 5               
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -13,6 +18,27 @@ services:
     networks:
       - pet-network
 
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: pet-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=production
+    depends_on:
+      db:
+        condition: service_healthy 
+      redis:
+        condition: service_started
+    networks:
+      - pet-network
+    volumes:
+      - .:/app
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: always
@@ -38,6 +64,11 @@ services:
       - redis_data:/data
     networks:
       - pet-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   redis-insight:
     image: redis/redisinsight:latest
