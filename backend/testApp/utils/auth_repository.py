@@ -65,8 +65,6 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
                     )
                 else:
                     if user_data["password"] == user_data["repit_password"]:
-                        print(user_data["password"])
-                        print(len(user_data["password"]))
                         if len(user_data["password"]) >= 4:
                             user_data["password"] = hash_password(user_data["password"])
                             del user_data["repit_password"]
