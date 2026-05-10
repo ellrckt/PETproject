@@ -68,9 +68,6 @@ function ChatWindow({ receiverId, receiverName }) {
             return;
          }
 
-         const data = res.data;
-         console.log("Данные перевода:", data);
-
          console.log("🔍 Ответ от сервера:", res);
 
          if (!res || !res.data) {
