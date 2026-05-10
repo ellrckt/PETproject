@@ -141,4 +141,3 @@ s3_client = S3Client(
     endpoint_url="https://s3.storage.selcloud.ru",
     bucket_name="pet1",
 )
-
