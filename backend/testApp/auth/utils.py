@@ -84,6 +84,8 @@ def decode_jwt(
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
 ):
+    print("TOKEN: ", token)
+    print("TYPE: ", type(token))
     try:
         if isinstance(token, bytes):
             token = token.decode('utf-8')
