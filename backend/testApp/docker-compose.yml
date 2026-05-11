@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgis/postgis:13-3.3 
+    image: postgres:15-alpine
     restart: always  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d pet_db"]
@@ -30,6 +30,9 @@ services:
       - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
       - REDIS_URL=redis://redis:6379/0
       - ENVIRONMENT=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
     depends_on:
       db:
         condition: service_healthy 

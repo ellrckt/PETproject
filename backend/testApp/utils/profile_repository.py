@@ -102,13 +102,9 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
                     if hasattr(profile, field):
                         setattr(profile, field, value)
 
-            await session.commit()
-            await session.refresh(profile)
-
             return profile
 
         except Exception as e:
-            await session.rollback()
             raise HTTPException(
                 status_code=400, detail=f"Failed to update profile: {str(e)}"
             )
@@ -128,8 +124,8 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
             result = await session.execute(stmt)
             profile = result.scalar_one_or_none()
 
-            await session.commit()
-            await session.refresh(profile)
+            # await session.commit()
+            # await session.refresh(profile)
 
         return profile
 
@@ -161,13 +157,12 @@ class SQLAlchemyProfileRepository(AbstractProfileRepository):
                         if hasattr(user_photo, field):
                             setattr(user_photo, field, value)
                     session.add(user_photo)
-                await session.commit()
-                await session.refresh(user_photo)
+                # await session.commit()
+                # await session.refresh(user_photo)
 
                 return user_photo
 
         except Exception as e:
-            await session.rollback()
             raise HTTPException(
                 status_code=400, detail=f"Failed to set photo: {str(e)}"
             )
