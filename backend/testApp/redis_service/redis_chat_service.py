@@ -1,5 +1,5 @@
-from http.client import HTTPResponse
-from typing import Mapping
+# from http.client import HTTPResponse
+# from typing import Mapping
 
 from fastapi import HTTPException
 import redis.asyncio as redis
@@ -10,20 +10,35 @@ from typing import Optional
 
 class RedisChatManager:
     def __init__(self):
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", 6379))
-        redis_db = int(os.getenv("REDIS_DB", 0))
-        self.redis = redis.Redis(
-            host=redis_host,
-            port=redis_port,
-            db=redis_db,
-            decode_responses=True,
-            socket_connect_timeout=5,
-        )
+        self.redis_host = os.getenv("REDIS_HOST", "redis")
+        self.redis_port = int(os.getenv("REDIS_PORT", 6379))
+        self.redis_db = int(os.getenv("REDIS_DB", 0))
+        self.redis: Optional[redis.Redis] = None
+
+    async def connect(self):
+        if self.redis is not None:
+            return
+        try:
+            self.redis = redis.Redis(
+                host=self.redis_host,
+                port=self.redis_port,
+                db=self.redis_db,
+                decode_responses=True,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
+            await self.redis.ping() 
+            self.logger.info("RedisChatManager connected")
+        except Exception as e:
+            self.logger.error(f"Redis connection failed: {e}")
+
+    async def _ensure_connected(self):
+        if self.redis is None:
+            await self.connect()
 
     async def _create_room_id(self, room_id: str, sender_id: int, receiver_id: int):
         try:
-            with self.redis.pipeline(transaction=True) as pipe:
+            async with self.redis.pipeline(transaction=True) as pipe:
                 pipe.lpush(room_id, sender_id)
                 pipe.rpush(room_id, receiver_id)
                 pipe.execute()
@@ -44,7 +59,9 @@ class RedisChatManager:
         return prefix
     
     async def add_unread_message(self,room_id: str, receiver_id: int):
-
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
         prefix = self._create_unread_messages_prefix(room_id, receiver_id)
         try: 
             await self.redis.incr(prefix)
@@ -55,7 +72,9 @@ class RedisChatManager:
 
     async def add_history_message(self, room_id: str, message_data: dict):
         history_key = self._create_room_history_prefix(room_id)
-        
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
             ### Pipeline
@@ -70,7 +89,9 @@ class RedisChatManager:
     
     
     async def get_unread_messages(self,room_id: str, sender_id: int):
-
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
         prefix = self._create_unread_messages_prefix(room_id, sender_id)
         try:
             value = await self.redis.get(prefix)
@@ -91,7 +112,9 @@ class RedisChatManager:
     async def get_recent_messages(self, room_id: str, limit: int = 50):
 
         history_key = self._create_room_history_prefix(room_id)
-        
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
         try:
             messages_json = await self.redis.lrange(history_key, 0, limit - 1)
             
@@ -108,7 +131,9 @@ class RedisChatManager:
             return HTTPException(status_code=500, detail="History data receiving error")
     
     async def get_last_n_messages(self, room_id: str, n: int = 3):
-
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
         history_key = self._create_room_history_prefix(room_id)
         print(history_key)
         try:
@@ -127,6 +152,9 @@ class RedisChatManager:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def get_last_message(self, room_id: str):
+        await self._ensure_connected()
+        if self.redis is None:
+            return False        
         history_key = self._create_room_history_prefix(room_id)
         last_message = await self.redis.lindex(history_key, -1)
         if not last_message:
