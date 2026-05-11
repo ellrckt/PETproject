@@ -36,10 +36,11 @@ class Settings(BaseSettings):
 
 class DataBase(BaseSettings):
     url: str = "postgresql+asyncpg://admin:admin@db:5432/pet_db"
-    echo: bool = False
+    echo: bool = True
     echo_pool: bool = False
-    pool_size: int = 50
-    max_overflow: int = 10
+    pool_size: int = 10
+    max_overflow: int = 5
+    pool_pre_ping: bool = True
 
 
 settings = Settings()

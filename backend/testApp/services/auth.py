@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import aiohttp
 import jwt
 from typing import Dict, Optional
-from fastapi import status, HTTPException
+from fastapi import HTTPException
 
 from auth.utils import create_token, decode_jwt, encode_jwt
 from config import settings
@@ -86,21 +86,24 @@ class AuthService:
         if not is_valid_username:
             raise HTTPException(status_code=404, detail=f"{error}")
         user_data["username"] = formatted_username
+        async with session.begin():
+            try:   
+                result = await self.auth_repository.register_user(user_data, session)
 
-        result = await self.auth_repository.register_user(user_data, session)
+                refresh_token = create_token(
+                    result.username, result.email, "refresh", result.id
+                )
+                access_token = create_token(result.username, result.email, "access", result.id)
 
-        refresh_token = create_token(
-            result.username, result.email, "refresh", result.id
-        )
-        access_token = create_token(result.username, result.email, "access", result.id)
+                temporary_profile = UpdateProfile(username=result.username)
+                await profile_service.update_profile(
+                    session, refresh_token, temporary_profile, redis_service
+                )
 
-        temporary_profile = UpdateProfile(username=result.username)
-        await profile_service.update_profile(
-            session, refresh_token, temporary_profile, redis_service
-        )
-
-        await self.create_user_session(refresh_token, session)
-
+                await self.create_user_session(refresh_token, session)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
+            
         return refresh_token, access_token, result.id
 
     async def create_user_session(self, refresh_token: str, session: AsyncSession):
@@ -146,8 +149,11 @@ class AuthService:
     async def login_user(self, schema: UserLogin, session: AsyncSession):
 
         user_data = schema.model_dump()
-        result = await self.auth_repository.login_user(user_data, session)
-
+        async with session.begin():
+            try:        
+                result = await self.auth_repository.login_user(user_data, session)
+            except HTTPException as e:
+                return HTTPException(status_code=400, detail=f"Login failed: {str(e)}")
         return result
 
     async def get_user_id(self, refresh_token: str, session: AsyncSession):

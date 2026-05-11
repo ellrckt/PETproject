@@ -108,10 +108,11 @@ class ProfileService:
         email = payload["email"]
         user_id = payload["user_id"]
 
-        result = await self.profile_repository.update_profile(
+
+        try:
+            result = await self.profile_repository.update_profile(
             session, email, profile_data
         )
-        try:
             redis_profile = await redis_service.update_profile(user_id, profile_data)
             if not redis_profile:
                 user_data = result.__dict__.copy()
@@ -120,7 +121,6 @@ class ProfileService:
             return result
 
         except Exception as e:
-            await session.rollback()
             raise HTTPException(
                 status_code=400, detail=f"Failed to update profile: {str(e)}"
             )
