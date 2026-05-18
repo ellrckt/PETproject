@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-
 import reqService from "../API/RequestService";
 
 export default function useGoogleAuth() {
    const nav = useNavigate();
 
    const [loading, setLoading] = useState(true);
-   const [isRefreshTokenAlive, setIsRefreshTokenAlive] = useState(true);
+   const [isRefreshTokenAlive, setIsRefreshTokenAlive] = useState(false);
 
    //for oauth and check if user is logged in
    useEffect(() => {
@@ -27,7 +25,7 @@ export default function useGoogleAuth() {
 
       async function getData() {
          await reqService.post("/login/get_google_token", code);
-         nav("/home");
+         nav("/");
          checkRefreshToken();
       }
 

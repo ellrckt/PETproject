@@ -2,6 +2,7 @@
    "name": "my-react-app",
    "version": "0.1.0",
    "private": true,
+   "proxy": "http://localhost:8000",
    "dependencies": {
       "@babel/helpers": "^7.28.2",
       "@babel/runtime": "^7.28.2",
