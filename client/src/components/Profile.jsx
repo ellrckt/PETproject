@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 
 import Button from "./UI/Button";
 import Input from "./UI/Input";
-import NavBar from "./NavBar";
 import PhotoLoader from "./UI/PhotoLoader";
 import DropDown from "./UI/DropDown";
 

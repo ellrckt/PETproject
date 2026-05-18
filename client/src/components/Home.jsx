@@ -4,13 +4,11 @@ import useGoogleAuth from "../hooks/useGoogleAuth";
 import reqService from "../API/RequestService";
 import ChatsList from "./ChatsList";
 import ChatWindow from "./ChatWindow";
-
 import { useState, useEffect } from "react";
 import UsersSearch from "./UsersSearch";
 
 function Home() {
    const { loading, isRefreshTokenAlive } = useGoogleAuth();
-
    const [userChats, setUserChats] = useState([]);
    const [receiverId, setReceiverId] = useState(null);
    const [receiverName, setReceiverName] = useState("");
