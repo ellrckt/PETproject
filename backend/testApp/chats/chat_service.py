@@ -7,6 +7,7 @@ from testapp.dependencies import get_redis_chat_service #, get_translate_manager
 # from translate_manager.translate_manager import TranslatorManager
 import uuid
 import json
+
 class WebSocketManager:
 
     active_connections: Dict[str, Dict[int, WebSocket]] = {}
