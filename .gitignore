@@ -226,4 +226,3 @@ pyproject.toml
 
 .backend/testApp/certs/
 backend/testApp/certs/
-.backend/testApp/migrations/
