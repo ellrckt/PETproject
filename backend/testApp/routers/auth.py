@@ -46,7 +46,7 @@ async def register_user(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax",
             max_age=3600 * 24 * 7,
             path="/",

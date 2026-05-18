@@ -75,6 +75,9 @@ class RedisChatManager:
         await self._ensure_connected()
         if self.redis is None:
             return False
+        if await self.redis.exists(room_id):
+            self.logger.debug(f"Room {room_id} already exists, skipping initialization")
+            return True
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
             ### Pipeline
