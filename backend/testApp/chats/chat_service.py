@@ -63,7 +63,6 @@ class WebSocketManager:
         for message in history_messages:
             message["is_viewed"] = True
         unread_messages_count = await self.redis_service.get_unread_messages(room_id, sender_id)
-        print(unread_messages_count)
         if room_id not in self.user_rooms:
             await self._create_room(websocket, sender_id, receiver_id)
         else:
@@ -106,7 +105,7 @@ class WebSocketManager:
             
             if receiver_id not in self.active_connections[room_id]:
                 message_with_class["is_viewed"] = False
-                await self.redis_service.add_unread_message(room_id, receiver_id)
+                await self.redis_service.add_unread_message(room_id, receiver_id, sender_id)
                 history = await self.redis_service.add_history_message(room_id, message_with_class)
             else:
                  await self.redis_service.add_history_message(room_id, message_with_class)
@@ -114,19 +113,38 @@ class WebSocketManager:
             for user_id, connection in self.active_connections[room_id].items():
                 await connection.send_json(message_with_class)
 
-    async def get_user_rooms(self, user_id: int):
-        try:
-            user_rooms = self.user_rooms[user_id] 
-            user_rooms_to_represent = {}
-            for room_id in user_rooms:
-                receiver_id = self.rooms[room_id][0]
-                if receiver_id == user_id:
-                    receiver_id = self.rooms[room_id][1]
-                last_message = await self.redis_service.get_last_message(room_id)
-                user_rooms_to_represent[room_id] = {"sender_id": user_id,"room_id": room_id, "last_message": last_message, "receiver_id": receiver_id}
-            return user_rooms_to_represent
-        except KeyError:
-            raise KeyError
+    async def get_user_rooms(self, user_id: int, receivers_ids: List[int]) -> Dict[str, dict]:
+        user_rooms_dict = {}
+
+        for receiver_id in receivers_ids:
+            room_id = self._create_room_id(user_id, receiver_id)
+            last_message = await self.redis_service.get_last_message(room_id)
+
+            user_rooms_dict[room_id] = {
+                "sender_id": user_id,
+                "room_id": room_id, 
+                "last_message": last_message, 
+                "receiver_id": receiver_id
+            }
+
+        sorted_rooms = sorted(
+            user_rooms_dict.items(),
+            key=lambda item: (item[1].get("last_message") or {}).get("date", "1900-01-01T00:00:00"),
+            reverse=True
+        )
+
+        return dict(sorted_rooms)
+            # user_rooms = self.user_rooms[user_id] 
+            # user_rooms_to_represent = []
+            # for room_id in user_rooms:
+            #     receiver_id = self.rooms[room_id][0]
+            #     if receiver_id == user_id:
+            #         receiver_id = self.rooms[room_id][1]
+            #     last_message = await self.redis_service.get_last_message(room_id)
+            #     user_rooms_to_represent.append = {"sender_id": user_id,"room_id": room_id, "last_message": last_message, "receiver_id": receiver_id}
+            # return user_rooms_to_represent
+        # except KeyError:
+        #     raise KeyError
             
     # async def get_context_answer(self, sender_id: int, receiver_id: int)->Dict:
     #     room_id = self._create_room_id(sender_id,receiver_id)

@@ -189,10 +189,9 @@ class SQLAlchemyAuthRepository(AbstractAuthRepository):
     async def get_user_id(self, refresh_token: str, session: AsyncSession):
 
         email = decode_jwt(refresh_token)["email"]
-        async with session as session:
-            stmt = select(self.model).where(self.model.email == email)
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-            user_id = user.id
+        stmt = select(self.model).where(self.model.email == email)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+        user_id = user.id
 
         return user_id

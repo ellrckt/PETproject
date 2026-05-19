@@ -28,9 +28,10 @@ async def get_user_profile(
     redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.get_user_profile(
-        user_id, session, redis_service, refresh_token
-    )
+    async with session.begin():
+        result = await profile_service.get_user_profile(
+            user_id, session, redis_service, refresh_token
+        )
 
     return result
 
@@ -47,9 +48,10 @@ async def update_profile(
     redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.update_profile(
-        session, refresh_token, schema, redis_service
-    )
+    async with session.begin():
+        result = await profile_service.update_profile(
+            session, refresh_token, schema, redis_service
+        )
 
     return result
 
@@ -62,7 +64,8 @@ async def create_profile(
     profile_service: Annotated[ProfileService, Depends(profile_service)],
 ) -> Profile:
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.create_profile(session, refresh_token, schema)
+    async with session.begin():
+        result = await profile_service.create_profile(session, refresh_token, schema)
 
     return result
 
@@ -76,9 +79,10 @@ async def upload_user_profile_photo(
     profile_service: Annotated[ProfileService, Depends(profile_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.upload_user_profile_photo(
-        auth_service, refresh_token, session, file, FOLDER
-    )
+    async with session.begin():
+        result = await profile_service.upload_user_profile_photo(
+            auth_service, refresh_token, session, file, FOLDER
+        )
 
     return result
 
@@ -90,7 +94,8 @@ async def get_habits(
     profile_service: Annotated[ProfileService, Depends(profile_service)],
 ):
     refresh_token = request.cookies.get("refresh_token")
-    result = await profile_service.get_habits(refresh_token, session)
+    async with session.begin():
+        result = await profile_service.get_habits(refresh_token, session)
     return result
 
 @router.get("/search/{search_filter}")
@@ -101,7 +106,8 @@ async def user_search(
     headers: str = Depends(http_bearer),
 ) -> List[Profile]:
     payload = decode_jwt(headers.credentials)
-    users_profiles = await profile_service.search_users_profiles(session, search_filter, payload)
+    async with session.begin():
+        users_profiles = await profile_service.search_users_profiles(session, search_filter, payload)
     return users_profiles
 
 
@@ -114,6 +120,7 @@ async def get_user_profiles(
     headers: str = Depends(http_bearer),
 ):
     payload = decode_jwt(headers.credentials)
-    result = await profile_service.get_user_profiles(user_ids, redis_service, session)
+    async with session.begin():
+        result = await profile_service.get_user_profiles(user_ids, redis_service, session)
     return result
     
