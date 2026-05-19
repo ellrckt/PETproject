@@ -27,6 +27,7 @@ function Home() {
 
    const getUserChats = async () => {
       const res = await reqService.get("/chats/get_user_rooms");
+      console.log(res);
       setUserChats(res.data);
    };
 

@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
+import { Send } from "lucide-react";
 import Input from "./UI/Input";
 import Button from "./UI/Button";
 import reqService from "../API/RequestService";
+import Summarization from "./contextualSummarization/Summarization";
 
 function ChatWindow({ receiverId, receiverName }) {
    const [message, setMessage] = useState("");
@@ -163,14 +165,14 @@ function ChatWindow({ receiverId, receiverName }) {
                            {msg.sender_id === receiverId ? receiverName : "You"}
                         </div>
                         <div className="mb-1">{msg.message}</div>
-                        {/* <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center">
                            <div className="text-xs opacity-70">
                               {formatDate(msg.date)}
                               {msg.is_viewed === false && (
                                  <span className="ml-2">• Unread</span>
                               )}
                            </div>
-                           {!msg.is_translated &&
+                           {/* {!msg.is_translated &&
                               msg.sender_id === receiverId && (
                                  <button
                                     onClick={() =>
@@ -188,8 +190,8 @@ function ChatWindow({ receiverId, receiverName }) {
                                        ? "Translating..."
                                        : "Translate"}
                                  </button>
-                              )}
-                        </div> */}
+                              )} */}
+                        </div>
                      </div>
                   </div>
                ))
@@ -197,21 +199,23 @@ function ChatWindow({ receiverId, receiverName }) {
             <div ref={messagesEndRef} />
          </div>
 
-         <div className="border-t p-4">
-            <div className="flex gap-2">
+         <div className="border-t p-2 bg-white">
+            <div className="flex items-center gap-2 w-full">
                <Input
                   placeholder="Type message here..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="flex-1"
+                  className="flex-1 w-full"
                />
                <Button
                   onClick={sendMessage}
                   disabled={!message.trim() || !isConnected}
+                  className="whitespace-nowrap"
                >
-                  Send
+                  <Send h-4 w-4/>
                </Button>
+               <Summarization></Summarization>
             </div>
          </div>
       </div>
