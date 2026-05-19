@@ -15,6 +15,8 @@ function ChatWindow({ receiverId, receiverName }) {
    useEffect(() => {
       if (!receiverId) return;
 
+      setMessages([]);
+
       const ws = new WebSocket(`ws://localhost:8000/chats/ws/${receiverId}`);
       wsRef.current = ws;
 
@@ -42,6 +44,8 @@ function ChatWindow({ receiverId, receiverName }) {
       };
 
       return () => {
+         ws.onmessage = null;
+
          if (ws.readyState === WebSocket.OPEN) {
             ws.close();
          }
@@ -62,13 +66,13 @@ function ChatWindow({ receiverId, receiverName }) {
             message_id: messageId.toString(),
             message_to_translate: text,
          });
-         
+
          if (!res || !res.data) {
             console.error("Некорректный ответ от сервера");
             return;
          }
 
-         console.log("🔍 Ответ от сервера:", res);
+         console.log("Ответ от сервера:", res);
 
          if (!res || !res.data) {
             console.error("Некорректный ответ от сервера");
@@ -83,7 +87,7 @@ function ChatWindow({ receiverId, receiverName }) {
                return String(msg.message_id) === String(data.message_id)
                   ? { ...msg, message: data.translation, is_translated: true }
                   : msg;
-            })
+            }),
          );
       } catch (error) {
          console.error("Translation error:", error);
@@ -159,7 +163,7 @@ function ChatWindow({ receiverId, receiverName }) {
                            {msg.sender_id === receiverId ? receiverName : "You"}
                         </div>
                         <div className="mb-1">{msg.message}</div>
-                        <div className="flex justify-between items-center">
+                        {/* <div className="flex justify-between items-center">
                            <div className="text-xs opacity-70">
                               {formatDate(msg.date)}
                               {msg.is_viewed === false && (
@@ -172,11 +176,11 @@ function ChatWindow({ receiverId, receiverName }) {
                                     onClick={() =>
                                        translateMessage(
                                           msg.message_id.toString(),
-                                          msg.message
+                                          msg.message,
                                        )
                                     }
                                     disabled={translatingIds.has(
-                                       msg.message_id
+                                       msg.message_id,
                                     )}
                                     className="ml-2 text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                  >
@@ -185,7 +189,7 @@ function ChatWindow({ receiverId, receiverName }) {
                                        : "Translate"}
                                  </button>
                               )}
-                        </div>
+                        </div> */}
                      </div>
                   </div>
                ))

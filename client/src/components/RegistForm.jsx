@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { addInfo } from './../store/profile/profileSlice';
+import { addInfo } from "./../store/profile/profileSlice";
 import reqService from "../API/RequestService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
@@ -35,13 +35,13 @@ function RegistForm() {
 
       dispatch(
          addInfo({
-            name: '',
-            photo: '',
+            name: "",
+            photo: "",
             id: userData.id,
-         })
+         }),
       );
 
-      nav("/home");
+      nav("/");
 
       // user location
       // if (typeof res === "string") {
@@ -52,8 +52,6 @@ function RegistForm() {
       //    //localStorage.setItem('location', JSON.stringify(userLocation.data));
       //    nav("/home");
       // }
-
-      
    }
 
    return (
