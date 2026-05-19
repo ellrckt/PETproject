@@ -36,27 +36,27 @@ async def register_user(
     response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
+    async with session.begin():
+        try:
+            refresh_token, access_token, id = await auth_service.register_user(
+                schema, session, profile_service, redis_service
+            )
 
-    try:
-        refresh_token, access_token, id = await auth_service.register_user(
-            schema, session, profile_service, redis_service
-        )
+            response.set_cookie(
+                key="refresh_token",
+                value=refresh_token,
+                httponly=True,
+                secure=False,
+                samesite="Lax",
+                max_age=3600 * 24 * 7,
+                path="/",
+            )
 
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            secure=False,
-            samesite="Lax",
-            max_age=3600 * 24 * 7,
-            path="/",
-        )
+            return TokenInfo(refresh_token=refresh_token, access_token=access_token, id=id)
 
-        return TokenInfo(refresh_token=refresh_token, access_token=access_token, id=id)
-
-    except Exception as e:
-        await session.rollback()
-        raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail=f"Registration failed: {str(e)}")
 
 
 login_router = APIRouter(tags=["login"], prefix="/login")
@@ -69,17 +69,18 @@ async def login_user(
     response: Response,
     session: AsyncSession = Depends(db_helper.get_session),
 ):
-    result = await auth_service.login_user(schema, session)
-    session = await auth_service.create_user_session(result.refresh_token, session)
-    response.set_cookie(
-        key="refresh_token",
-        value=result.refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-        path="/",
-    )
+    async with session.begin():
+        result = await auth_service.login_user(schema, session)
+        session = await auth_service.create_user_session(result.refresh_token, session)
+        response.set_cookie(
+            key="refresh_token",
+            value=result.refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=3600,
+            path="/",
+        )
 
     return result
 
@@ -96,7 +97,8 @@ async def get_tokens_with_google(
     auth_service: Annotated[AuthService, Depends(auth_service)],
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
-    result = await auth_service.get_tokens_with_google(email, session)
+    async with session.begin():
+        result = await auth_service.get_tokens_with_google(email, session)
     return result
 
 
@@ -107,21 +109,22 @@ async def get_google_token(
     auth_service: Annotated[AuthService, Depends(auth_service)],
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
-    user_data = await auth_service.get_google_user_data(code)
+    async with session.begin():
+        user_data = await auth_service.get_google_user_data(code)
 
-    result = await auth_service.get_tokens_with_google(user_data["email"], session)
+        result = await auth_service.get_tokens_with_google(user_data["email"], session)
 
-    session = await auth_service.create_user_session(result.refresh_token, session)
+        session = await auth_service.create_user_session(result.refresh_token, session)
 
-    response.set_cookie(
-        key="refresh_token",
-        value=result.refresh_token,
-        httponly=True,
-        secure=False,
-        samesite="Lax",
-        max_age=3600,
-        path="/",
-    )
+        response.set_cookie(
+            key="refresh_token",
+            value=result.refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="Lax",
+            max_age=3600,
+            path="/",
+        )
 
     return result
 
@@ -138,18 +141,19 @@ async def check_refresh_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is missing"
         )
-    try:
-        payload = decode_jwt(refresh_token)
-        result = await auth_service.check_refresh_token(refresh_token, session)
+    async with session.begin():
+        try:
+            payload = decode_jwt(refresh_token)
+            result = await auth_service.check_refresh_token(refresh_token, session)
 
-        return True
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}",
-        )
+            return True
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Token verification failed: {str(e)}",
+            )
 
 
 @login_router.get("/refresh")
@@ -158,8 +162,8 @@ async def refresh_token(
     auth_service: Annotated[AuthService, Depends(auth_service)],
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> TokenInfo:
-
-    refresh_token = request.cookies.get("refresh_token")
-    new_access_token = await auth_service.refresh_token(session, refresh_token)
+    async with session.begin():
+        refresh_token = request.cookies.get("refresh_token")
+        new_access_token = await auth_service.refresh_token(session, refresh_token)
 
     return TokenInfo(access_token=new_access_token)

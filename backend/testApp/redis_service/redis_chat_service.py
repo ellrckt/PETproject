@@ -5,8 +5,16 @@ from fastapi import HTTPException
 import redis.asyncio as redis
 import json
 import os
-from typing import Optional
+from typing import List, Optional
 
+import logging
+from dotenv import load_dotenv
+from datetime import datetime
+load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 class RedisChatManager:
     def __init__(self):
@@ -14,7 +22,9 @@ class RedisChatManager:
         self.redis_port = int(os.getenv("REDIS_PORT", 6379))
         self.redis_db = int(os.getenv("REDIS_DB", 0))
         self.redis: Optional[redis.Redis] = None
-
+        self.logger = logging.getLogger("redis_service")
+        self.logger.setLevel(logging.DEBUG)
+        
     async def connect(self):
         if self.redis is not None:
             return
@@ -58,7 +68,10 @@ class RedisChatManager:
         prefix = f"{room_id}:{receiver_id}:unread_messages"
         return prefix
     
-    async def add_unread_message(self,room_id: str, receiver_id: int):
+    def _get_user_rooms_key(self, user_id: int) -> str:
+        return f"user:{user_id}:rooms"
+    
+    async def add_unread_message(self,room_id: str, receiver_id: int, sender_id: int):
         await self._ensure_connected()
         if self.redis is None:
             return False
@@ -66,10 +79,34 @@ class RedisChatManager:
         try: 
             await self.redis.incr(prefix)
             await self.redis.expire(prefix, 60*60*24*30)
+            await self.add_receiver_to_user(sender_id, receiver_id)
+            await self.add_receiver_to_user(receiver_id, sender_id)
         except Exception as e:
             print(f"Redis error in add_unread_message: {e}")
             return False
+        
+    async def add_receiver_to_user(self, user_id: int, receiver_id: int) -> bool:
+        await self._ensure_connected()
+        if self.redis is None:
+            return False
+        try:
+            await self.redis.sadd(self._get_user_rooms_key(user_id), receiver_id)
+            return True
+        except Exception as e:
+            self.logger.error(f"Error adding receiver {receiver_id} to user {user_id}: {e}")
+            return False
 
+    async def get_user_receivers(self, user_id: int) -> List[int]:
+        await self._ensure_connected()
+        if self.redis is None:
+            return []
+        try:
+            receivers = await self.redis.smembers(self._get_user_rooms_key(user_id))
+            return [int(r) for r in receivers] if receivers else []
+        except Exception as e:
+            self.logger.error(f"Error getting receivers for user {user_id}: {e}")
+            return []
+        
     async def add_history_message(self, room_id: str, message_data: dict):
         history_key = self._create_room_history_prefix(room_id)
         await self._ensure_connected()
@@ -80,7 +117,6 @@ class RedisChatManager:
             return True
         try:
             message_json = json.dumps(message_data, ensure_ascii=False)
-            ### Pipeline
             await self.redis.rpush(history_key, message_json)
             await self.redis.ltrim(history_key, 0, 999)  
             await self.redis.expire(history_key, 60 * 60 * 24 * 10)  

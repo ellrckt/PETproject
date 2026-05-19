@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
 from sqlalchemy import String, Integer, LargeBinary, ForeignKey, Boolean, ARRAY
-from typing import List
+from typing import List, Optional
 
 from models.base import Base
 from models.file import UserPhoto
@@ -16,7 +16,7 @@ class Profile(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
     user: Mapped["User"] = relationship("User", back_populates="profile")
 
-    profile_photo: Mapped[List["UserPhoto"]] = relationship(
+    profile_photo: Mapped[Optional["UserPhoto"]] = relationship(
         "UserPhoto", back_populates="profile", cascade="all, delete-orphan"
     )
 
