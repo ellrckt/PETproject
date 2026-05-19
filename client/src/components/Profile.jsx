@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
-
 import Button from "./UI/Button";
 import Input from "./UI/Input";
 import PhotoLoader from "./UI/PhotoLoader";
 import DropDown from "./UI/DropDown";
-
 import reqService from "../API/RequestService";
 
 function Profile() {

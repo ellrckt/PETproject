@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addInfo } from "./../store/profile/profileSlice";
@@ -31,10 +31,10 @@ function LoginForm() {
             name: "",
             photo: "",
             id: userData.id,
-         })
+         }),
       );
 
-      typeof res === "string" ? setError(res) : nav("/home");
+      typeof res === "string" ? setError(res) : nav("/");
    }
 
    function getGoogleUri(e) {
