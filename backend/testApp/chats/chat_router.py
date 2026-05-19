@@ -1,13 +1,17 @@
 from typing import Annotated, Dict
-from fastapi import Cookie, Body, Depends, WebSocket, APIRouter, Request, WebSocketDisconnect
+from fastapi import Cookie, Body, Depends, HTTPException, WebSocket, APIRouter, Request, WebSocketDisconnect
 from redis_service.redis_profile_service import RedisJSONProfileService
+from redis_service.redis_chat_service import RedisChatManager
 from auth.utils import decode_jwt
 from chats.chat_service import WebSocketManager
-from testapp.dependencies import get_ws_service, profile_service, redis_json_service
+from testapp.dependencies import get_ws_service, profile_service, redis_json_service, get_redis_chat_service
 from services.profile import ProfileService
 from db.db import db_helper
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
 router = APIRouter(prefix='/chats',tags=['ws'])
+
 
 @router.get("/get_user_rooms")
 async def get_user_rooms(
@@ -15,32 +19,44 @@ async def get_user_rooms(
     ws_service: Annotated[WebSocketManager, Depends(get_ws_service)],
     profile_service: Annotated[ProfileService, Depends(profile_service)],
     redis_service: Annotated[RedisJSONProfileService, Depends(redis_json_service)],
+    redis_chat_service: Annotated[RedisChatManager, Depends(get_redis_chat_service)],
     session: Annotated[AsyncSession, Depends(db_helper.get_session)],
 ):
     refresh_token = request.cookies.get("refresh_token")
-    user_id = decode_jwt(refresh_token)["user_id"]
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+        
     try:
-        user_rooms = await ws_service.get_user_rooms(user_id) 
-        #{"room_id": {"sender_id": user_id,"room_id": room_id,
-        #last_message": last_message, "receiver_id": receiver_id}}
-        # {'4_6': {'sender_id': 6, 'room_id': '4_6', 'last_message': {'message': None}, 'receiver_id': 4}}
-        receiver_ids = [room["receiver_id"] for room in user_rooms.values()]
+        payload = decode_jwt(refresh_token)
+        user_id = payload["user_id"]
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-        receivers_profiles = await profile_service.get_user_profiles(receiver_ids, redis_service, session)
-        print(receivers_profiles)
-        profiles_by_id = {profile["user_id"]: profile for profile in receivers_profiles}
-
-        rooms_with_profiles = {
-            room_id: {
-                **room_data,  
-                "username": profiles_by_id[room_data["receiver_id"]]["username"],
-                "profile_photo_url": profiles_by_id[room_data["receiver_id"]]["profile_photo_url"],
-                "profile_id": profiles_by_id[room_data["receiver_id"]]["id"],
-            }
-            for room_id, room_data in user_rooms.items()  
-            if room_data["receiver_id"] in profiles_by_id
-            }
-        return rooms_with_profiles
+    receiver_ids = await redis_chat_service.get_user_receivers(user_id)
+    if not receiver_ids:
+        return {"rooms": []}
+        
+    user_rooms = await ws_service.get_user_rooms(user_id, receiver_ids)
+    
+    receivers_profiles = await profile_service.get_user_profiles(
+        receiver_ids, redis_service, session
+    )
+    profiles_by_id = {p["user_id"]: p for p in receivers_profiles}
+    
+    rooms_with_profiles = []
+    for room_id, room_data in user_rooms.items():
+        receiver_id = room_data["receiver_id"]
+        profile = profiles_by_id.get(receiver_id)
+        
+        if profile: 
+            rooms_with_profiles.append({
+                **room_data,
+                "username": profile["username"],
+                "profile_photo_url": profile["profile_photo_url"],
+                "profile_id": profile["id"],
+            })
+            
+    return {"data": rooms_with_profiles}
         
         #user_rooms_to_represent 
         #[{
@@ -56,8 +72,8 @@ async def get_user_rooms(
         #    "profile_photo_url": "string"
         #    },]
 
-    except KeyError:
-        return {f"{user_id}": []}
+    # except KeyError:
+    #     return {f"{user_id}": []}
 
 
 

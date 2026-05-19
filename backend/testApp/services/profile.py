@@ -25,7 +25,6 @@ class ProfileService:
         file: UploadFile,
         folder: str,
     ):
-
         user_id = await auth_repository.get_user_id(refresh_token, session)
         result = await s3_client.upload_file_from_uploadfile(user_id, file, folder)
         photo = await self.profile_repository.set_user_profile_photo(
@@ -52,15 +51,15 @@ class ProfileService:
         # email = payload["email"]
         # user_id = payload["user_id"]
 
-        redis_result = await redis_service.get_profile(user_id)
-        if redis_result is None:
+        # redis_result = await redis_service.get_profile(user_id)
+        # if redis_result is None:
             # result = await self.profile_repository.get_user_profile(session, email)
-            result = await self.profile_repository.get_user_profile(session, user_id)
+        result = await self.profile_repository.get_user_profile(session, user_id)
 
-            profile = await redis_service.create_profile(user_id, result)
-            return result
-        else:
-            return redis_result
+        profile = await redis_service.create_profile(user_id, result)
+        return result
+        # else:
+        #     return redis_result
 
     async def get_user_profiles(
         self,
@@ -115,7 +114,7 @@ class ProfileService:
         )
             redis_profile = await redis_service.update_profile(user_id, profile_data)
             if not redis_profile:
-                user_data = result.__dict__.copy()
+                user_data = result.copy()
                 user_data.pop("_sa_instance_state", None)
                 redis_profile = await redis_service.create_profile(user_id, user_data)
             return result
