@@ -119,12 +119,13 @@ class WebSocketManager:
         for receiver_id in receivers_ids:
             room_id = self._create_room_id(user_id, receiver_id)
             last_message = await self.redis_service.get_last_message(room_id)
-
+            unread_messages_count = await self.redis_service.get_unread_messages(room_id, user_id)
             user_rooms_dict[room_id] = {
                 "sender_id": user_id,
                 "room_id": room_id, 
                 "last_message": last_message, 
-                "receiver_id": receiver_id
+                "receiver_id": receiver_id,
+                "unread_messages_count": unread_messages_count
             }
 
         sorted_rooms = sorted(
