@@ -1,26 +1,30 @@
 import ChatsListItem from "./ChatsListItem";
-import Button from "./UI/Button";
+// import Button from "./UI/Button";
 
-function ChatsList({ userChatsArray }) {
+function ChatsList({ userChatsArray, onChatSelect }) {
    // const handleClick = () => {
    //    const input = document.getElementById("users-search-input");
    //    input?.focus();
    // };
 
    return (
-      <aside className="w-80 bg-stone-50 border-r border-stone-200 flex flex-col h-full">
+      <aside className="w-60 bg-stone-50 border-r border-stone-200 flex flex-col h-full">
          <div className="p-4 border-b border-stone-200 flex-shrink-0">
             <h2 className="text-xl font-bold text-stone-800">Your Chats</h2>
          </div>
 
          <div className="flex-1 overflow-y-auto">
-            {userChatsArray.length ? (
+            {userChatsArray && userChatsArray.length ? (
                userChatsArray.map((chat, index) => (
                   <ChatsListItem
                      key={chat.id || index}
                      userImageLink={chat.profile_photo_url}
                      contactUserName={chat.username}
-                     numberOfUnreadMessages={chat.number_of_unread_messages}
+                     numberOfUnreadMessages={chat.number_of_unread_messages || 0}
+                     last_message={chat.last_message.message}
+                     receiverId={chat.receiver_id}
+                     receiverUsername={chat.username}
+                     openChat={onChatSelect}
                   />
                ))
             ) : (

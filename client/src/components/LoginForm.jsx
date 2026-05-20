@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addInfo } from "./../store/profile/profileSlice";
-
 import jwtService from "../API/JwtService";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
-
 import logo from "../assets/images/google-icon.svg";
 
 function LoginForm() {

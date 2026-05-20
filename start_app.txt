@@ -30,3 +30,7 @@ cd client
 npm install
 
 npm run dev
+
+
+
+# дроп бд docker-compose down -v ,потом docker-compose up -d --build чтобы поднять

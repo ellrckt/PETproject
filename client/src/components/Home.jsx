@@ -13,10 +13,14 @@ function Home() {
    const [receiverId, setReceiverId] = useState(null);
    const [receiverName, setReceiverName] = useState("");
 
+   const handleChatOpen = (id, username) => {
+      setReceiverId(id);
+      setReceiverName(username);
+   }
+
    const handleUserSelect = (user) => {
       setReceiverId(user.user_id);
       setReceiverName(user.username);
-      console.log(user);
    };
 
    useEffect(() => {
@@ -27,8 +31,12 @@ function Home() {
 
    const getUserChats = async () => {
       const res = await reqService.get("/chats/get_user_rooms");
-      console.log(res);
-      setUserChats(res.data);
+
+      if (res.data.data) {
+         setUserChats(res.data.data);
+      } else {
+         console.log("ошибка сервера");
+      }
    };
 
    if (loading) {
@@ -43,7 +51,7 @@ function Home() {
       <div className="flex h-screen bg-white">
          <ChatsList
             userChatsArray={userChats}
-            // onChatSelect={handleUserSelect}
+            onChatSelect={handleChatOpen}
          />
 
          <main className="flex-1 flex flex-col">

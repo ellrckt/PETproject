@@ -34,7 +34,7 @@ async def get_user_rooms(
 
     receiver_ids = await redis_chat_service.get_user_receivers(user_id)
     if not receiver_ids:
-        return {"rooms": []}
+        return {"data": None}
         
     user_rooms = await ws_service.get_user_rooms(user_id, receiver_ids)
     

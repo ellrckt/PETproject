@@ -1,25 +1,47 @@
-function ChatsListItem({ userImageLink, contactUserName, numberOfUnreadMessages  }) {
+import { ArrowRight } from "lucide-react";
+import Button from "./UI/Button";
+
+function ChatsListItem({
+   userImageLink,
+   contactUserName,
+   numberOfUnreadMessages,
+   last_message,
+   receiverId,
+   receiverUsername,
+   openChat,
+}) {
    return (
-      <div className="flex items-center p-4 hover:bg-stone-100 cursor-pointer">
-         <div className="mr-3">
+      <div className="flex items-center p-3 hover:bg-stone-100 active:bg-stone-200 cursor-pointer transition-colors border-b border-stone-100">
+         <div className="mr-3 flex-shrink-0">
             <img
-               src={userImageLink}
-               alt={contactUserName}
-               className="w-12 h-12 rounded-full object-cover"
+               src={userImageLink || "../../public/default-avatar.png"}
+               alt="profile photo"
+               className="w-12 h-12 rounded-full object-cover border border-stone-200"
             />
          </div>
 
-         <div className="flex-1">
-            <h3 className="font-medium text-stone-800">{contactUserName}</h3>
+         <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-stone-800 text-sm truncate mb-0.5">
+               {contactUserName}
+            </h3>
+            <p className="text-xs text-stone-500 truncate">{last_message}</p>
          </div>
 
          {numberOfUnreadMessages > 0 && (
-            <div className="ml-2">
-               <span className="bg-stone-800 text-white text-xs font-medium rounded-full w-6 h-6 flex items-center justify-center">
+            <div className="ml-2 flex-shrink-0">
+               <span className="bg-stone-800 text-white text-[10px] font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
                   {numberOfUnreadMessages}
                </span>
             </div>
          )}
+
+         <Button
+            onClick={() => {
+               openChat(receiverId, receiverUsername);
+            }}
+         >
+            <ArrowRight className="w-4 h-4"></ArrowRight>
+         </Button>
       </div>
    );
 }
