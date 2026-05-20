@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import Button from "./UI/Button";
 import Input from "./UI/Input";
 import PhotoLoader from "./UI/PhotoLoader";
@@ -35,9 +35,9 @@ function Profile() {
    // const profile = useSelector(state => state.profile);
 
    const getUserId = async () => {
-      const res = await reqService.get('user/get_current_user');
+      const res = await reqService.get("user/get_current_user");
       return res.data.user_id;
-   }
+   };
 
    const getProfile = async () => {
       const profile = await getUserId();
@@ -146,25 +146,25 @@ function Profile() {
                               </p>
                            </div>
 
-                           <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                           {/* <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
                               <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
                                  Location
                               </h3>
                               <div className="flex flex-wrap gap-4">
                                  <div>
-                                    {/* <p className="text-sm text-stone-600">Country</p> */}
+                                    <p className="text-sm text-stone-600">Country</p>
                                     <p className="text-lg text-stone-800 font-medium">
                                        {country || "Not specified"}
                                     </p>
                                  </div>
                                  <div>
-                                    {/* <p className="text-sm text-stone-600">City</p> */}
+                                    <p className="text-sm text-stone-600">City</p>
                                     <p className="text-lg text-stone-800 font-medium">
                                        {city || "Not specified"}
                                     </p>
                                  </div>
                               </div>
-                           </div>
+                           </div> */}
 
                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
                               <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">
