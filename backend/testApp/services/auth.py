@@ -131,7 +131,7 @@ class AuthService:
                     "client_id": settings.auth_jwt.google_client_id,
                     "client_secret": settings.auth_jwt.google_client_secret,
                     "grant_type": "authorization_code",
-                    "redirect_uri": "http://localhost:3000/home",
+                    "redirect_uri": "http://localhost:3000",
                     "code": code,
                 },
                 ssl=False,
