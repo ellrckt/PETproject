@@ -4,6 +4,7 @@ import Input from "./UI/Input";
 import Button from "./UI/Button";
 import reqService from "../API/RequestService";
 import Summarization from "./contextualSummarization/Summarization";
+import SearchButton from "./contextualSearch/SearchButton";
 
 function ChatWindow({ receiverId, receiverName }) {
    const [message, setMessage] = useState("");
@@ -129,6 +130,13 @@ function ChatWindow({ receiverId, receiverName }) {
 
    return (
       <div className="flex flex-col h-full">
+         <div className="p-4 border-b border-stone-200 flex items-center justify-between gap-4">
+            <h2 className="text-lg font-semibold text-stone-800 truncate">
+               {receiverId ? `Chat with ${receiverName}` : "Messages"}
+            </h2>
+            <SearchButton />
+         </div>
+
          <div
             className={`px-4 py-2 text-sm ${
                isConnected
@@ -213,9 +221,9 @@ function ChatWindow({ receiverId, receiverName }) {
                   disabled={!message.trim() || !isConnected}
                   className="whitespace-nowrap"
                >
-                  <Send h-4 w-4/>
+                  <Send h-4 w-4 />
                </Button>
-               <Summarization></Summarization>
+               {/* <Summarization></Summarization> */}
             </div>
          </div>
       </div>
