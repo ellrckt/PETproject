@@ -18,7 +18,7 @@ function SearchWindow({ handleWindowClosing }) {
             </button>
 
             <h3 className="text-lg font-bold text-stone-600 pr-6">
-               Advanced Search
+               AI Search
             </h3>
 
             <div>
@@ -31,7 +31,7 @@ function SearchWindow({ handleWindowClosing }) {
                      type="checkbox"
                      className="w-4 h-4 rounded border-stone-300 text-stone-800 focus:ring-stone-500 accent-stone-800"
                   />
-                  <span>Search in titles only</span>
+                  <span></span>
                </label>
 
                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-stone-700 select-none">
