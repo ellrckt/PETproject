@@ -9,6 +9,7 @@ import UsersSearch from "./UsersSearch";
 import { useDispatch } from "react-redux";
 import { setChatsList } from "@/store/chats/chatsSlice";
 
+
 function Home() {
    const { loading, isRefreshTokenAlive } = useGoogleAuth();
    const [userChats, setUserChats] = useState([]);
