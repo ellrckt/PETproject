@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 function SearchWindow({ handleWindowClosing }) {
    const handleSearch = async () => {};
 
+   
    return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4">
          <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl border border-stone-200 p-6 flex flex-col gap-5">
