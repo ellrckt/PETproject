@@ -1,4 +1,6 @@
+import { useDispatch, useSelector } from "react-redux";
 import ChatsListItem from "./ChatsListItem";
+import { setActiveChatId } from "../store/chats/chatsSlice";
 // import Button from "./UI/Button";
 
 function ChatsList({ userChatsArray, onChatSelect }) {
@@ -6,6 +8,15 @@ function ChatsList({ userChatsArray, onChatSelect }) {
    //    const input = document.getElementById("users-search-input");
    //    input?.focus();
    // };
+   const dispatch = useDispatch();
+
+   const chatsList = useSelector((state) => state.chats.chatsList);
+
+   const handleChatOpen = (receiverId, username, roomId) => {
+      onChatSelect(receiverId, username);
+
+      dispatch(setActiveChatId(roomId));
+   };
 
    return (
       <aside className="w-60 bg-stone-50 border-r border-stone-200 flex flex-col h-full">
@@ -14,17 +25,20 @@ function ChatsList({ userChatsArray, onChatSelect }) {
          </div>
 
          <div className="flex-1 overflow-y-auto">
-            {userChatsArray && userChatsArray.length ? (
-               userChatsArray.map((chat, index) => (
+            {chatsList && chatsList.length ? (
+               chatsList.map((chat, index) => (
                   <ChatsListItem
-                     key={chat.id || index}
+                     key={chat.room_id || index}
+                     roomId={chat.room_id}
                      userImageLink={chat.profile_photo_url}
                      contactUserName={chat.username}
-                     numberOfUnreadMessages={chat.number_of_unread_messages || 0}
+                     numberOfUnreadMessages={
+                        chat.number_of_unread_messages || 0
+                     }
                      last_message={chat.last_message.message}
                      receiverId={chat.receiver_id}
                      receiverUsername={chat.username}
-                     openChat={onChatSelect}
+                     openChat={handleChatOpen}
                   />
                ))
             ) : (

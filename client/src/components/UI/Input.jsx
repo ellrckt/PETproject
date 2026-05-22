@@ -1,5 +1,3 @@
-import React from "react";
-
 function Input({ placeholder, value, onChange, type }) {
    return (
       <div className="mb-4">
@@ -7,7 +5,7 @@ function Input({ placeholder, value, onChange, type }) {
             <input
                className="w-full px-3 py-2 border-b-2 border-gray-300 rounded-none text-gray-700 focus:outline-none focus:border-stone-500 focus:ring-0 transition-colors duration-200 bg-transparent"
                id={placeholder}
-               type={type || 'text'}
+               type={type || "text"}
                placeholder={placeholder}
                value={value}
                onChange={onChange}
