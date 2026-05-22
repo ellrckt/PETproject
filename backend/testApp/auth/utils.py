@@ -3,7 +3,7 @@ from config import settings
 import bcrypt
 from datetime import timedelta, datetime
 from fastapi import HTTPException
-from typing import Literal
+from typing import Literal, Union
 from config import settings
 
 
@@ -48,7 +48,7 @@ def encode_jwt(
     algorithm: str = settings.auth_jwt.algorithm,
     expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
     expire_days: int = settings.auth_jwt.refresh_token_expire_days,
-    expire_timedelta: timedelta | None = None,
+    expire_timedelta: Union[timedelta, None]= None,
 ):
     if payload["token_type"] == settings.auth_jwt.REFRESH_TOKEN_TYPE:
         to_encode = payload.copy()
