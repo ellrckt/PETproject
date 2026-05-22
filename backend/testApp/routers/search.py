@@ -34,7 +34,7 @@ class SelectedMessageSchema(BaseModel):
     created_at: datetime
 
 class AISmartSearchResponse(BaseModel):
-    selected_messages: List[SelectedMessageSchema]
+    data: List[SelectedMessageSchema]
     reason: str
 
 
