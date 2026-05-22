@@ -51,7 +51,7 @@ class AISearchFilterService:
             "2. Ответ ДОЛЖЕН быть строго в формате JSON без какого-либо постороннего текста.\n"
             "3. Структура ответа:\n"
             "{\n"
-            '  "selected_messages": [\n'
+            '  "data": [\n'
             '    {"id": 1, "message": "текст", "sender_id": 2, "created_at": "время"}\n'
             '  ],\n'
             '  "reason": "Обоснование выбора с упоминанием соответствия критериям (запросу, автору, датам)"\n'
@@ -86,7 +86,7 @@ class AISearchFilterService:
                 response_format={"type": "json_object"} 
             )
             
-            raw_ai_response = response.choices.message.content
+            raw_ai_response = response.choices[0].message.content
             return json.loads(raw_ai_response)
 
         except Exception as e:

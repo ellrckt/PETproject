@@ -1,61 +1,51 @@
-# ==========================================
-# ЭТАП 1: Сборка зависимостей (Builder)
-# ==========================================
-FROM python:3.13-slim AS builder
+# syntax=docker/dockerfile:1.4
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    VIRTUAL_ENV=/opt/venv \
-    PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Устанавливаем инструменты сборки (нужны только здесь)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN python -m venv $VIRTUAL_ENV
-
-WORKDIR /build
-
-# Кэшируем и устанавливаем пакеты
-COPY requirements-base.txt requirements-ml.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-base.txt && \
-    pip install --no-cache-dir -r requirements-ml.txt
-
-# ==========================================
-# ЭТАП 2: Финальный минимальный образ
-# ==========================================
-FROM python:3.13-slim AS runner
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
     VIRTUAL_ENV=/opt/venv \
     PATH="$VIRTUAL_ENV/bin:$PATH" \
     APP_HOME=/app \
     PYTHONPATH="/app"
 
-# Для работы asyncpg/psycopg2 в рантайме нужна только базовая libpq5 (без gcc и заголовков)
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
+    build-essential \
+    libpq-dev \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# Создание venv
+RUN python -m venv $VIRTUAL_ENV
 
 WORKDIR $APP_HOME
 
-# Создаем безопасного пользователя
+# Создание пользователя (для безопасности)
 RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser $APP_HOME
+    chown -R appuser:appuser $APP_HOME $VIRTUAL_ENV
 
-# СКОПИРОВАНИЕ: Переносим готовое окружение из этапа builder
-COPY --from=builder --chown=appuser:appuser /opt/venv /opt/venv
+# 🔹 Копируем ТОЛЬКО файлы зависимостей ПЕРЕД кодом приложения
+COPY requirements-base.txt .
+COPY requirements-ml.txt .
 
-# КОПИРОВАНИЕ: Переносим код приложения (сбросит кэш только для этого слоя)
+# 🔹 Кэшируем pip через BuildKit mount (ускоряет повторные сборки)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements-base.txt
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements-ml.txt
+
+# 🔹 Копируем код приложения ПОСЛЕ установки зависимостей
+# Если изменится код — слои с pip останутся в кэше!
 COPY --chown=appuser:appuser . .
 
 USER appuser
 
 EXPOSE 8000
 
-CMD alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000
+# 🔹 Для prod: alembic + uvicorn
+# 🔹 Для dev: переопределим CMD в docker-compose.dev.yml
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
