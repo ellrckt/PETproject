@@ -5,15 +5,38 @@ import Button from "../UI/Button";
 import Input from "../UI/Input";
 import { X } from "lucide-react";
 import { getActiveChat } from "../../store/chats/chatsSlice";
+import reqService from "../../API/RequestService";
 
 function SearchWindow({ handleWindowClosing }) {
-   const [query, setQuery] = useState("");
+   const [searchData, setSearchData] = useState({
+      query: "",
+      author_id: null,
+      date_from: "",
+      date_to: "",
+   });
+   const [foundMessages, setFoundMessages] = useState([]);
 
-   const handleQueryChange = (event) => {
-      setQuery(event.target.value);
+   const handleSearchDataChange = (event) => {
+      const { name, value } = event.target;
+
+      setSearchData((prev) => ({
+         ...prev,
+         [name]: value,
+      }));
    };
 
-   const handleSearch = async () => {};
+   const handleSearch = async () => {
+      console.log(searchData);
+
+      const response = await reqService.post(
+         `/search/${activeChat.room_id}/smart-filter`,
+         searchData,
+      );
+
+      if (response.data.data) {
+         setFoundMessages(response.data.data);
+      }
+   };
 
    const activeChat = useSelector(getActiveChat);
    return (
@@ -31,27 +54,28 @@ function SearchWindow({ handleWindowClosing }) {
             <div>
                <Input
                   placeholder="Search query..."
-                  value={query}
-                  onChange={handleQueryChange}
+                  name="query"
+                  value={searchData.query}
+                  onChange={handleSearchDataChange}
                />
             </div>
 
-            <div className="flex flex-col gap-2.5">
-               <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-stone-700 select-none">
-                  <Input
-                     type="checkbox"
-                     className="w-4 h-4 rounded border-stone-300 text-stone-800 focus:ring-stone-500 accent-stone-800"
-                  />
-                  <span>My messages</span>
+            <div className="flex flex-col gap-1.5">
+               <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                  Search In
                </label>
-
-               <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-stone-700 select-none">
-                  <input
-                     type="checkbox"
-                     className="w-4 h-4 rounded border-stone-300 text-stone-800 focus:ring-stone-500 accent-stone-800"
-                  />
-                  <span>{activeChat.username} messages</span>
-               </label>
+               <select
+                  name="author_id"
+                  value={searchData.author_id}
+                  onChange={handleSearchDataChange}
+                  className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-stone-800 bg-white cursor-pointer text-sm font-medium"
+               >
+                  <option value="">All messages</option>
+                  <option value={activeChat.sender_id}>My messages only</option>
+                  <option value={activeChat.receiver_id}>
+                     {activeChat.username || "User"} messages only
+                  </option>
+               </select>
             </div>
 
             {/* <DateSelector></DateSelector> */}
@@ -64,61 +88,48 @@ function SearchWindow({ handleWindowClosing }) {
                   <input
                      type="date"
                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-stone-800 bg-white"
+                     name="date_from"
+                     value={searchData.date_from}
+                     onChange={handleSearchDataChange}
                   />
                   <span className="text-stone-400 text-sm">to</span>
                   <input
                      type="date"
                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-stone-800 bg-white"
+                     name="date_to"
+                     value={searchData.date_to}
+                     onChange={handleSearchDataChange}
                   />
                </div>
             </div>
 
             <Button onClick={handleSearch}>Search</Button>
 
-            <h3 className="text-lg font-bold text-stone-600 pr-6">
-               Search results:
-            </h3>
+            {foundMessages.length ? (
+               <div>
+                  <h3 className="text-lg font-bold text-stone-600 pr-6">
+                     Search results:
+                  </h3>
 
-            {/* <div className="flex flex-col gap-4">
-               <div className="flex justify-start">
-                  <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-gray-100 text-gray-800">
-                     <div className="font-medium mb-1">@test1</div>
-                     <div className="mb-1">
-                        Мать вернулась из супермаркета с полными пакетами
-                        продуктов.
-                     </div>
-                     <div className="flex justify-between items-center">
-                        <div className="text-xs opacity-70">12:30</div>
-                     </div>
-                  </div>
+                  {foundMessages.map((message) => {
+                     return (
+                        <div className="flex justify-start">
+                           <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-gray-100 text-gray-800">
+                              <div className="font-medium mb-1">
+                                 {message.username}
+                              </div>
+                              <div className="mb-1">{message.message}</div>
+                              <div className="flex justify-between items-center">
+                                 <div className="text-xs opacity-70">
+                                    {message.date}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     );
+                  })}
                </div>
-
-               <div className="flex justify-end">
-                  <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-blue-500 text-white">
-                     <div className="font-medium mb-1">You</div>
-                     <div className="mb-1">
-                        Родительница приобрела в магазине всё необходимое по
-                        списку.
-                     </div>
-                     <div className="flex justify-between items-center">
-                        <div className="text-xs opacity-70">12:31</div>
-                     </div>
-                  </div>
-               </div>
-
-               <div className="flex justify-start">
-                  <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-gray-100 text-gray-800">
-                     <div className="font-medium mb-1">@test1</div>
-                     <div className="mb-1">
-                        Мамуля заскочила в гастроном и взяла молоко с печеньем к
-                        чаю.
-                     </div>
-                     <div className="flex justify-between items-center">
-                        <div className="text-xs opacity-70">12:32</div>
-                     </div>
-                  </div>
-               </div>
-            </div> */}
+            ) : null}
          </div>
       </div>
    );

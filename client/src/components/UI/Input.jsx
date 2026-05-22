@@ -1,4 +1,4 @@
-function Input({ placeholder, value, onChange, type }) {
+function Input({ placeholder, value, onChange, type, name }) {
    return (
       <div className="mb-4">
          <div className="relative">
@@ -9,6 +9,7 @@ function Input({ placeholder, value, onChange, type }) {
                placeholder={placeholder}
                value={value}
                onChange={onChange}
+               name={name || "name"}
             />
             <div className="absolute bottom-0 left-0 w-full h-0.5 bg-stone-500 transform scale-x-0 origin-left transition-transform duration-200 focus-within:scale-x-100"></div>
          </div>

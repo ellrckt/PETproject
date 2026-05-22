@@ -18,34 +18,31 @@ services:
     networks:
       - pet-network
 
-  backend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: pet-backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
-      - REDIS_URL=redis://redis:6379/0
-      - ENVIRONMENT=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-    depends_on:
-      db:
-        condition: service_healthy 
-      redis:
-        condition: service_healthy # ИСПРАВЛЕНО: Ждем полной готовности Redis
-    networks:
-      - pet-network
-    volumes:
-      # ИСПРАВЛЕНО: Защищаем внутреннюю виртуальную среду от затирания хостом,
-      # если вы ведете активную разработку с горячей перезагрузкой кода
-      - .:/app
-      - /opt/venv:/opt/venv
-      - /app/__pycache__
+  # backend:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: pet-backend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - ENVIRONMENT=production
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - REDIS_DB=0
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy 
+  #     redis:
+  #       condition: service_healthy # ИСПРАВЛЕНО: Ждем полной готовности Redis
+  #   networks:
+  #     - pet-network
+  #   volumes:
+  #     - .:/app
+  #     - /app/pycache
 
   pgadmin:
     image: dpage/pgadmin4:latest

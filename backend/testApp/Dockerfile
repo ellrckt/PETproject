@@ -58,4 +58,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000
+CMD ["/bin/sh", "-c", "/opt/venv/bin/python -m alembic upgrade head && /opt/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000"]
