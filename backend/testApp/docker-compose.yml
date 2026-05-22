@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     restart: always  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d pet_db"]
@@ -37,11 +37,16 @@ services:
       db:
         condition: service_healthy 
       redis:
-        condition: service_started
+        condition: service_healthy # ИСПРАВЛЕНО: Ждем полной готовности Redis
     networks:
       - pet-network
     volumes:
+      # ИСПРАВЛЕНО: Защищаем внутреннюю виртуальную среду от затирания хостом,
+      # если вы ведете активную разработку с горячей перезагрузкой кода
       - .:/app
+      - /opt/venv:/opt/venv
+      - /app/__pycache__
+
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: always
@@ -51,7 +56,8 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - pet-network
 
@@ -61,8 +67,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    # environment:
-    #   - REDIS_PASSWORD=admin
     volumes:
       - redis_data:/data
     networks:
@@ -77,7 +81,8 @@ services:
     image: redis/redisinsight:latest
     container_name: redis-insight
     depends_on: 
-      - redis
+      redis:
+        condition: service_healthy
     restart: always
     volumes:
       - redis_insight_data:/data
@@ -85,32 +90,6 @@ services:
       - "5540:5540"
     networks: 
       - pet-network
-
-  # notifications-db:
-  #   image: postgres:13
-  #   environment:
-  #     POSTGRES_DB: notifications
-  #     POSTGRES_USER: notif_user
-  #     POSTGRES_PASSWORD: notif_pass
-  #   networks:
-  #     - pet-network
-
-  # notifications:
-  #   depends_on:
-  #     - notifications-db
-  #   environment:
-  #     DATABASE_URL: postgresql://notif_user:notif_pass@notifications-db:5432/notifications
-  
-  # Message Broker (RabbitMQ)
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   ports:
-  #     - "5672:5672"   
-  #     - "15672:15672" 
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
-  #   networks:
-  #     - pet-network
 
 networks:
   pet-network:
@@ -120,4 +99,3 @@ volumes:
   postgres_data:
   redis_data:
   redis_insight_data:
-  # rabbitmq_data:
