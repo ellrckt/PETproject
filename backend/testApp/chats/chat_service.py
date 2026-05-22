@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Set, List
 from datetime import datetime
 from fastapi import WebSocket,WebSocketDisconnect,Depends
@@ -7,6 +8,14 @@ from testapp.dependencies import get_redis_chat_service #, get_translate_manager
 # from translate_manager.translate_manager import TranslatorManager
 import uuid
 import json
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from db.db import db_helper
+from models.message import Message
+from tasks.generate_embeddings import generate_embedding_for_message
+logger = logging.getLogger(__name__)
+
+background_tasks = set()
 
 class WebSocketManager:
 
@@ -98,20 +107,58 @@ class WebSocketManager:
                 del self.active_connections[room_id]
 
 
-    async def broadcast(self, message: str, room_id: int, sender_id: int, receiver_id: int, sender_username: str):
-        
+    async def broadcast(self, message: str, room_id: str, sender_id: int, receiver_id: int, sender_username: str):
+        msg_uuid = str(uuid.uuid4())
+        message_obj = {
+            "message_id": msg_uuid,
+            "message": message,
+            "room_id": room_id,
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "created_at": datetime.now().isoformat(),
+            "is_viewed": True,
+            "username": sender_username,
+        }
         if room_id in self.active_connections:
-            message_with_class = {"message": message,"room_id": room_id, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now().isoformat(), "is_viewed": True, "message_id": self.generate_uuid_v4(), "username": sender_username}
+            message_with_class = {"message": message,"room_id": room_id, "sender_id": sender_id, "receiver_id": receiver_id, "date": datetime.now().isoformat(), "is_viewed": True, "message_id": msg_uuid, "username": sender_username}
             
             if receiver_id not in self.active_connections[room_id]:
                 message_with_class["is_viewed"] = False
                 await self.redis_service.add_unread_message(room_id, receiver_id, sender_id)
                 history = await self.redis_service.add_history_message(room_id, message_with_class)
             else:
-                 await self.redis_service.add_history_message(room_id, message_with_class)
+                    await self.redis_service.add_history_message(room_id, message_with_class)
                 
             for user_id, connection in self.active_connections[room_id].items():
                 await connection.send_json(message_with_class)
+        task = asyncio.create_task(self._save_message_to_db(message_obj))
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
+
+    async def _save_message_to_db(self, msg: dict):
+        try:
+            async with db_helper.session_factory() as session:
+                db_msg = Message(
+                    message_id=msg["message_id"],
+                    message=msg["message"],
+                    room_id=msg["room_id"],
+                    sender_id=msg["sender_id"],
+                    receiver_id=msg["receiver_id"],
+                    is_viewed=msg["is_viewed"]
+                )
+                session.add(db_msg)
+                await session.commit()
+                # 🔹 await session.refresh(db_msg) -> Убрано, экономит 1 запрос к БД
+                
+                # Надежный запуск таски генерации эмбеддинга
+                task = asyncio.create_task(
+                    generate_embedding_for_message(msg["message_id"], msg["message"])
+                )
+                background_tasks.add(task)
+                task.add_done_callback(background_tasks.discard)
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to save message to DB: {e}")
 
     async def get_user_rooms(self, user_id: int, receivers_ids: List[int]) -> Dict[str, dict]:
         user_rooms_dict = {}

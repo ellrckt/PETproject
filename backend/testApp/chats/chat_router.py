@@ -1,5 +1,5 @@
 from typing import Annotated, Dict
-from fastapi import Cookie, Body, Depends, HTTPException, WebSocket, APIRouter, Request, WebSocketDisconnect
+from fastapi import Body, Depends, HTTPException, WebSocket, APIRouter, Request, WebSocketDisconnect
 from redis_service.redis_profile_service import RedisJSONProfileService
 from redis_service.redis_chat_service import RedisChatManager
 from auth.utils import decode_jwt

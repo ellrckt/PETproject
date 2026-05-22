@@ -1,8 +1,5 @@
 import urllib.parse
-import secrets
-from fastapi import Request, HTTPException
 from config import settings
-from datetime import datetime, timedelta
 
 
 def generate_url():
