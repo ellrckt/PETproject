@@ -11,8 +11,8 @@ function SearchWindow({ handleWindowClosing }) {
    const [searchData, setSearchData] = useState({
       query: "",
       author_id: null,
-      date_from: "",
-      date_to: "",
+      date_from: null,
+      date_to: null,
    });
    const [foundMessages, setFoundMessages] = useState([]);
 
