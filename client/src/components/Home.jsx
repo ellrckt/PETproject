@@ -7,7 +7,7 @@ import ChatWindow from "./ChatWindow";
 import { useState, useEffect } from "react";
 import UsersSearch from "./UsersSearch";
 import { useDispatch } from "react-redux";
-import { setChatsList } from "@/store/chats/chatsSlice";
+import { setChatsList } from "../store/chats/chatsSlice";
 
 function Home() {
    const { loading, isRefreshTokenAlive } = useGoogleAuth();
