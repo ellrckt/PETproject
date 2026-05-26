@@ -6,15 +6,16 @@ import Input from "../UI/Input";
 import { X } from "lucide-react";
 import { getActiveChat } from "../../store/chats/chatsSlice";
 import reqService from "../../API/RequestService";
+import { formatDate } from "../../utils/dateConverter";
 
 function SearchWindow({ handleWindowClosing }) {
    const [searchData, setSearchData] = useState({
       query: "",
       author_id: null,
-      date_from: "",
-      date_to: "",
+      date_from: null,
+      date_to: null,
    });
-   const [foundMessages, setFoundMessages] = useState([]);
+   const [foundMessages, setFoundMessages] = useState(null);
 
    const handleSearchDataChange = (event) => {
       const { name, value } = event.target;
@@ -105,15 +106,15 @@ function SearchWindow({ handleWindowClosing }) {
 
             <Button onClick={handleSearch}>Search</Button>
 
-            {foundMessages.length ? (
+            {foundMessages && foundMessages.length ? (
                <div>
-                  <h3 className="text-lg font-bold text-stone-600 pr-6">
+                  <h3 className="text-lg font-bold text-stone-600 pr-6 mb-4">
                      Search results:
                   </h3>
 
                   {foundMessages.map((message) => {
                      return (
-                        <div className="flex justify-start">
+                        <div className="flex justify-start mb-4">
                            <div className="max-w-xs lg:max-w-md rounded-lg px-4 py-2 bg-gray-100 text-gray-800">
                               <div className="font-medium mb-1">
                                  {message.username}
@@ -121,13 +122,21 @@ function SearchWindow({ handleWindowClosing }) {
                               <div className="mb-1">{message.message}</div>
                               <div className="flex justify-between items-center">
                                  <div className="text-xs opacity-70">
-                                    {message.date}
+                                    {formatDate(message.created_at)}
                                  </div>
                               </div>
                            </div>
                         </div>
                      );
                   })}
+               </div>
+            ) : null}
+
+            {foundMessages && !foundMessages.length ? (
+               <div>
+                  <h3 className="text-lg font-bold text-stone-600 pr-6">
+                     No messages found
+                  </h3>
                </div>
             ) : null}
          </div>

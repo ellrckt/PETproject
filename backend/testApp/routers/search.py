@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.db import db_helper
 from services.embedding import ChatEmbeddingService
@@ -41,11 +41,11 @@ class AISmartSearchResponse(BaseModel):
 @router.post("/{room_id}/search", response_model=SearchResponse)
 async def search_messages(
     room_id: str,
-    query: str = Query(..., min_length=1),
-    author_id: Optional[int] = Query(None, alias="author_id"), # Синхронизировано со Swagger
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
-    limit: int = Query(20, le=50),
+    query: str = Body(min_length=1),
+    author_id: Optional[int] = Body(None, alias="author_id"), # Синхронизировано со Swagger
+    date_from: Optional[datetime] = Body(None),
+    date_to: Optional[datetime] = Body(None),
+    limit: int = Body(20, le=50),
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     """
@@ -74,11 +74,11 @@ async def search_messages(
 @router.post("/{room_id}/smart-filter", response_model=AISmartSearchResponse)
 async def smart_search_with_ai_filter(
     room_id: str,
-    query: str = Query(..., min_length=1),
-    author_id: Optional[int] = Query(None, alias="author_id"), # Синхронизировано со Swagger
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
-    limit: int = Query(20, le=50),
+    query: str = Body(..., min_length=1),
+    author_id: Optional[int] = Body(None, alias="author_id"), # Синхронизировано со Swagger
+    date_from: Optional[datetime] = Body(None),
+    date_to: Optional[datetime] = Body(None),
+    limit: int = Body(20, le=50),
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     """
