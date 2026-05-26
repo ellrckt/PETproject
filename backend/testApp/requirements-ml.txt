@@ -1,2 +1,2 @@
-sentence-transformers>=5.5.1
+sentence-transformers>=5.1.2
 pgvector[sqlalchemy]>=0.4.2

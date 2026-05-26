@@ -160,13 +160,15 @@ services:
   #     - REDIS_DB=0
   #   depends_on:
   #     db:
-  #       condition: service_healthy
+
+  #       condition: service_healthy 
   #     redis:
-  #       condition: service_started
+  #       condition: service_healthy # ИСПРАВЛЕНО: Ждем полной готовности Redis
   #   networks:
   #     - pet-network
-  #   # 🔹 В prod НЕ монтируем код — используем собранное изображение
-  #   # Для dev переопределяем через docker-compose.dev.yml
+  #   volumes:
+  #     - .:/app
+  #     - /app/pycache
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -216,4 +218,9 @@ networks:
   pet-network:
     driver: bridge
 
- 
+
+volumes:
+  postgres_data:
+  redis_data:
+
+  redis_insight_data:

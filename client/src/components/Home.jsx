@@ -6,17 +6,20 @@ import ChatsList from "./ChatsList";
 import ChatWindow from "./ChatWindow";
 import { useState, useEffect } from "react";
 import UsersSearch from "./UsersSearch";
+import { useDispatch } from "react-redux";
+import { setActiveChatId, setChatsList } from "../store/chats/chatsSlice";
 
 function Home() {
    const { loading, isRefreshTokenAlive } = useGoogleAuth();
    const [userChats, setUserChats] = useState([]);
    const [receiverId, setReceiverId] = useState(null);
    const [receiverName, setReceiverName] = useState("");
+   const dispatch = useDispatch();
 
    const handleChatOpen = (id, username) => {
       setReceiverId(id);
       setReceiverName(username);
-   }
+   };
 
    const handleUserSelect = (user) => {
       setReceiverId(user.user_id);
@@ -34,6 +37,7 @@ function Home() {
 
       if (res.data.data) {
          setUserChats(res.data.data);
+         dispatch(setChatsList(res.data.data));
       } else {
          console.log("ошибка сервера");
       }
@@ -49,18 +53,9 @@ function Home() {
 
    return (
       <div className="flex h-screen bg-white">
-         <ChatsList
-            userChatsArray={userChats}
-            onChatSelect={handleChatOpen}
-         />
+         <ChatsList userChatsArray={userChats} onChatSelect={handleChatOpen} />
 
          <main className="flex-1 flex flex-col">
-            <div className="p-4 border-b border-stone-200">
-               <h2 className="text-lg font-semibold text-stone-800">
-                  {receiverId ? `Chat with ${receiverName}` : "Messages"}
-               </h2>
-            </div>
-
             {receiverId ? (
                <ChatWindow
                   receiverId={receiverId}
