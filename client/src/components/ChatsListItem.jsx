@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Button from "./UI/Button";
 
 function ChatsListItem({
+   roomId,
    userImageLink,
    contactUserName,
    numberOfUnreadMessages,
@@ -37,7 +38,7 @@ function ChatsListItem({
 
          <Button
             onClick={() => {
-               openChat(receiverId, receiverUsername);
+               openChat(receiverId, receiverUsername, roomId);
             }}
          >
             <ArrowRight className="w-4 h-4"></ArrowRight>

@@ -36,3 +36,4 @@ async def personal_chat(websocket: WebSocket, room_id: int, user_id: int):
         data = await websocket.receive()
         message = await websocket.send(f"{user_id}:\n{data}")
         print(websocket)
+

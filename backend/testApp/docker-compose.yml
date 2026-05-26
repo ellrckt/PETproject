@@ -1,47 +1,175 @@
+# services:
+#   db:
+#     image: pgvector/pgvector:pg15
+#     restart: always  
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U admin -d pet_db"]
+#       interval: 5s
+#       timeout: 3s
+#       retries: 5               
+#     environment:
+#       POSTGRES_USER: admin
+#       POSTGRES_PASSWORD: admin
+#       POSTGRES_DB: pet_db      
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432" 
+#     networks:
+#       - pet-network
+
+#   # backend:
+#   #   build: 
+#   #     context: .
+#   #     dockerfile: Dockerfile
+#   #   container_name: pet-backend
+#   #   restart: unless-stopped
+#   #   ports:
+#   #     - "8000:8000"
+#   #   environment:
+#   #     - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
+#   #     - REDIS_URL=redis://redis:6379/0
+#   #     - ENVIRONMENT=production
+#   #     - REDIS_HOST=redis
+#   #     - REDIS_PORT=6379
+#   #     - REDIS_DB=0
+#   #   depends_on:
+#   #     db:
+#   #       condition: service_healthy 
+#   #     redis:
+#   #       condition: service_started
+#   #   networks:
+#   #     - pet-network
+#   #   volumes:
+#   #     - .:/app
+#   pgadmin:
+#     image: dpage/pgadmin4:latest
+#     restart: always
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: admin@example.com
+#       PGADMIN_DEFAULT_PASSWORD: admin
+#     ports:
+#       - "8080:80"
+#     depends_on:
+#       - db
+#     networks:
+#       - pet-network
+
+#   redis:
+#     image: redis/redis-stack-server:latest
+#     container_name: redis
+#     restart: always
+#     ports:
+#       - "6379:6379"
+#     # environment:
+#     #   - REDIS_PASSWORD=admin
+#     volumes:
+#       - redis_data:/data
+#     networks:
+#       - pet-network
+#     healthcheck:
+#       test: ["CMD", "redis-cli", "ping"]
+#       interval: 5s
+#       timeout: 3s
+#       retries: 3
+
+#   redis-insight:
+#     image: redis/redisinsight:latest
+#     container_name: redis-insight
+#     depends_on: 
+#       - redis
+#     restart: always
+#     volumes:
+#       - redis_insight_data:/data
+#     ports: 
+#       - "5540:5540"
+#     networks: 
+#       - pet-network
+
+#   # notifications-db:
+#   #   image: postgres:13
+#   #   environment:
+#   #     POSTGRES_DB: notifications
+#   #     POSTGRES_USER: notif_user
+#   #     POSTGRES_PASSWORD: notif_pass
+#   #   networks:
+#   #     - pet-network
+
+#   # notifications:
+#   #   depends_on:
+#   #     - notifications-db
+#   #   environment:
+#   #     DATABASE_URL: postgresql://notif_user:notif_pass@notifications-db:5432/notifications
+  
+#   # Message Broker (RabbitMQ)
+#   # rabbitmq:
+#   #   image: rabbitmq:3-management
+#   #   ports:
+#   #     - "5672:5672"   
+#   #     - "15672:15672" 
+#   #   volumes:
+#   #     - rabbitmq_data:/var/lib/rabbitmq
+#   #   networks:
+#   #     - pet-network
+
+# networks:
+#   pet-network:
+#     driver: bridge
+
+# volumes:
+#   postgres_data:
+#   redis_data:
+#   redis_insight_data:
+#   # rabbitmq_data:
+
+# docker-compose.yml
 services:
   db:
-    image: postgres:15-alpine
-    restart: always  
+    image: pgvector/pgvector:pg15
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d pet_db"]
       interval: 5s
       timeout: 3s
-      retries: 5               
+      retries: 5
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: pet_db      
+      POSTGRES_DB: pet_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" 
+      - "5432:5432"
     networks:
       - pet-network
 
-  backend:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: pet-backend
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
-      - REDIS_URL=redis://redis:6379/0
-      - ENVIRONMENT=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-    depends_on:
-      db:
-        condition: service_healthy 
-      redis:
-        condition: service_started
-    networks:
-      - pet-network
-    volumes:
-      - .:/app
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: pet-backend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - DATABASE_URL=postgresql+asyncpg://admin:admin@db:5432/pet_db
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - ENVIRONMENT=production
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #     - REDIS_DB=0
+  #   depends_on:
+  #     db:
+
+  #       condition: service_healthy 
+  #     redis:
+  #       condition: service_healthy # ИСПРАВЛЕНО: Ждем полной готовности Redis
+  #   networks:
+  #     - pet-network
+  #   volumes:
+  #     - .:/app
+  #     - /app/pycache
+
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: always
@@ -54,6 +182,8 @@ services:
       - db
     networks:
       - pet-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
   redis:
     image: redis/redis-stack-server:latest
@@ -61,8 +191,6 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    # environment:
-    #   - REDIS_PASSWORD=admin
     volumes:
       - redis_data:/data
     networks:
@@ -76,48 +204,23 @@ services:
   redis-insight:
     image: redis/redisinsight:latest
     container_name: redis-insight
-    depends_on: 
+    depends_on:
       - redis
     restart: always
     volumes:
       - redis_insight_data:/data
-    ports: 
+    ports:
       - "5540:5540"
-    networks: 
+    networks:
       - pet-network
-
-  # notifications-db:
-  #   image: postgres:13
-  #   environment:
-  #     POSTGRES_DB: notifications
-  #     POSTGRES_USER: notif_user
-  #     POSTGRES_PASSWORD: notif_pass
-  #   networks:
-  #     - pet-network
-
-  # notifications:
-  #   depends_on:
-  #     - notifications-db
-  #   environment:
-  #     DATABASE_URL: postgresql://notif_user:notif_pass@notifications-db:5432/notifications
-  
-  # Message Broker (RabbitMQ)
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   ports:
-  #     - "5672:5672"   
-  #     - "15672:15672" 
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
-  #   networks:
-  #     - pet-network
 
 networks:
   pet-network:
     driver: bridge
 
+
 volumes:
   postgres_data:
   redis_data:
+
   redis_insight_data:
-  # rabbitmq_data:
