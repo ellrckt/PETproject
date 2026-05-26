@@ -216,8 +216,4 @@ networks:
   pet-network:
     driver: bridge
 
-volumes:
-  postgres_data:
-  redis_data:
-  redis_insight_data:
-  pgadmin_data:
+ 
