@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         extra="ignore"
 
 class DataBase(BaseSettings):
-    url: str = "postgresql+asyncpg://admin:admin@db:5432/pet_db"
+    url: str = "postgresql+asyncpg://admin:admin@localhost:5432/pet_db"
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 10
