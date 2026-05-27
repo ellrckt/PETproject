@@ -134,7 +134,7 @@ function ChatWindow({ receiverId, receiverName }) {
             <h2 className="text-lg font-semibold text-stone-800 truncate">
                {receiverId ? `Chat with ${receiverName}` : "Messages"}
             </h2>
-            <SearchButton />
+            {/* <SearchButton /> */}
          </div>
 
          <div
@@ -208,7 +208,7 @@ function ChatWindow({ receiverId, receiverName }) {
          </div>
 
          <div className="border-t p-2 bg-white">
-            <div className="flex items-center gap-2 w-full">
+            <div className="flex items-center gap-4 w-full">
                <Input
                   placeholder="Type message here..."
                   value={message}
@@ -223,7 +223,7 @@ function ChatWindow({ receiverId, receiverName }) {
                >
                   <Send h-4 w-4 />
                </Button>
-               {/* <Summarization></Summarization> */}
+               <Summarization></Summarization>
             </div>
          </div>
       </div>

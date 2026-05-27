@@ -5,17 +5,21 @@ import SummarizationWindow from "./SummarizationWindow";
 function Summarization() {
    const [isExpanded, setIsExpanded] = useState(false);
 
-   const handleButtonClick = () => {
-      setIsExpanded(true);
+   const handleWindowExpansion = () => {
+      setIsExpanded(!isExpanded);
    };
 
    if (isExpanded) {
-      return <SummarizationWindow></SummarizationWindow>;
+      return (
+         <SummarizationWindow
+            handleWindowClosing={handleWindowExpansion}
+         ></SummarizationWindow>
+      );
    } else {
       return (
          <div>
-            <Button onClick={handleButtonClick}>
-               Generate summary with AI
+            <Button onClick={handleWindowExpansion}>
+               Generate resume
             </Button>
          </div>
       );
