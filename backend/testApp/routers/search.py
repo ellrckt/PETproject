@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.db import db_helper
 from services.embedding import ChatEmbeddingService
-from utils.search_repository import hybrid_search_messages
+from utils.search_repository import hybrid_search_messages, hybrid_sum_search_messages
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 from services.llm import AISearchFilterService 
@@ -41,11 +41,11 @@ class AISmartSearchResponse(BaseModel):
 @router.post("/{room_id}/search", response_model=SearchResponse)
 async def search_messages(
     room_id: str,
-    query: str = Query(..., min_length=1),
-    author_id: Optional[int] = Query(None, alias="author_id"), # Синхронизировано со Swagger
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
-    limit: int = Query(20, le=50),
+    query: str = Body(min_length=1),
+    author_id: Optional[int] = Body(None, alias="author_id"), # Синхронизировано со Swagger
+    date_from: Optional[datetime] = Body(None),
+    date_to: Optional[datetime] = Body(None),
+    limit: int = Body(20, le=50),
     session: AsyncSession = Depends(db_helper.get_session),
 ):
     """
@@ -70,6 +70,13 @@ async def search_messages(
     
     return SearchResponse(results=results or [])
 
+
+class SearchRequestSchema(BaseModel):
+    query: str = Field(..., min_length=1, description="Текст поискового запроса")
+    author_id: Optional[int] = Field(None, description="Фильтр по ID автора сообщений")
+    date_from: Optional[datetime] = Field(None, description="Начало периода поиска (ISO 8601)")
+    date_to: Optional[datetime] = Field(None, description="Конец периода поиска (ISO 8601)")
+    limit: int = Field(20, le=50, description="Максимальное количество результатов")
 
 @router.post("/{room_id}/smart-filter", response_model=AISmartSearchResponse)
 async def smart_search_with_ai_filter(
@@ -103,4 +110,51 @@ async def smart_search_with_ai_filter(
         chat_messages=raw_db_results or []
     )
     
+    return ai_filtered_json
+
+@router.post("/{room_id}/smart-sum", response_model=AISmartSearchResponse)
+async def smart_sum_with_ai(
+    room_id: str,
+    timeMode: Optional[str] = Body(None),
+    sumMode : Optional[str] = Body(None),
+    query: Optional[str] = Body(..., min_length=1),
+    date_from: Optional[datetime] = Body(None),
+    date_to: Optional[datetime] = Body(None),
+    limit: Optional[int] = Body(20, le=50),
+    session: AsyncSession = Depends(db_helper.get_session),
+):
+
+    if query:
+        query_vector = embedding_svc.embed_text(query)
+
+        raw_db_results = await hybrid_sum_search_messages(
+            session=session,
+            room_id=room_id,
+            query_vector=query_vector,
+            query_text=query,
+            date_from=date_from,
+            date_to=date_to,
+            limit=limit,
+            timeMode=timeMode
+        )
+    else:
+        raw_db_results = await hybrid_sum_search_messages(
+            session=session,
+            room_id=room_id,
+            query_vector=None,
+            query_text=None,
+            date_from=date_from,
+            date_to=date_to,
+            limit=limit,
+            timeMode=timeMode
+
+        )
+
+    ai_filtered_json = await ai_filter_svc.select_for_summ(
+        user_query=query,
+        chat_messages=raw_db_results or [],
+        sumMode=sumMode
+    )
+
+
     return ai_filtered_json
