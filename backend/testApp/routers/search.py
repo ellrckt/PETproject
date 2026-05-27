@@ -112,7 +112,7 @@ async def smart_search_with_ai_filter(
     
     return ai_filtered_json
 
-@router.post("/{room_id}/smart-sum", response_model=AISmartSearchResponse)
+@router.post("/{room_id}/smart-sum")
 async def smart_sum_with_ai(
     room_id: str,
     timeMode: Optional[str] = Body(None),
