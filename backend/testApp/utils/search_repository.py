@@ -130,7 +130,6 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-
 async def hybrid_sum_search_messages(
     session: AsyncSession,
     room_id: str,
@@ -140,15 +139,13 @@ async def hybrid_sum_search_messages(
     date_to: Optional[datetime] = None,
     limit: Optional[int] = None,
     semantic_weight: float = 0.7,
-    timeMode: Optional[str] = Body(None),
+    timeMode: Optional[str] = None,   
 ) -> List[Dict]:
     
     keyword_weight = 1.0 - semantic_weight
-    
     params = {"room_id": room_id}
     filters = ["room_id = :room_id"]
     
-
     if date_from:
         filters.append("created_at >= :date_from")
         params["date_from"] = date_from
@@ -160,51 +157,58 @@ async def hybrid_sum_search_messages(
     has_vector = query_vector is not None and len(query_vector) > 0
     is_hybrid = has_text and has_vector
 
+    # Исправляем проверку лимита: корректно обрабатываем limit=0
+    # Если limit не передан вовсе, то в SQL лимиты не добавляются (выбираем всё)
     inner_limit_clause = ""
     outer_limit_clause = ""
     
-    if timeMode:
-        if limit:
+    if limit is not None:
+        params["limit"] = limit
+        if timeMode:
             inner_limit_clause = "ORDER BY created_at DESC LIMIT :limit"
-            params["limit"] = limit
-    else:
-        if limit:
+        else:
             outer_limit_clause = "LIMIT :limit"
-            params["limit"] = limit
 
     if is_hybrid:
         vec_literal = _vector_to_literal(query_vector)
         filters.append("embedding IS NOT NULL")
-        filters.append("message ILIKE :like_text")
+        # УБРАЛИ "message ILIKE :like_text", чтобы работал чистый семантический + полнотекстовый поиск
         
-        params["like_text"] = f"%{query_text}%"
         params["q_text"] = query_text
         
         semantic_score_sql = f"(1 - (embedding <=> '{vec_literal}'::vector))"
         keyword_score_sql = f"ts_rank(to_tsvector('{TEXT_SEARCH_CONFIG}', message), plainto_tsquery('{TEXT_SEARCH_CONFIG}', :q_text))"
         order_by_sql = f"({semantic_weight} * semantic_score + {keyword_weight} * keyword_score) DESC"
+        
+        where_clause = " AND ".join(filters)
+        
+        query = text(f"""
+            SELECT id, message, sender_id, receiver_id, created_at, semantic_score, keyword_score
+            FROM (
+                SELECT 
+                    id, message, sender_id, receiver_id, created_at,
+                    {semantic_score_sql} AS semantic_score,
+                    {keyword_score_sql} AS keyword_score
+                FROM messages
+                WHERE {where_clause}
+                {inner_limit_clause}
+            ) sub
+            ORDER BY {order_by_sql}
+            {outer_limit_clause}
+        """)
     else:
-        semantic_score_sql = "0.0"
-        keyword_score_sql = "0.0"
-        order_by_sql = "created_at DESC"
-
-    where_clause = " AND ".join(filters)
-
-    query = text(f"""
-        SELECT id, message, sender_id, receiver_id, created_at, semantic_score, keyword_score
-        FROM (
-            SELECT 
-                id, message, sender_id, receiver_id, created_at,
-                {semantic_score_sql} AS semantic_score,
-                {keyword_score_sql} AS keyword_score
+        # ОПТИМИЗАЦИЯ: Если query нет, выполняем простой, линейный запрос без подзапросов
+        where_clause = " AND ".join(filters)
+        limit_clause = "LIMIT :limit" if limit is not None else ""
+        
+        query = text(f"""
+            SELECT id, message, sender_id, receiver_id, created_at, 0.0 AS semantic_score, 0.0 AS keyword_score
             FROM messages
             WHERE {where_clause}
-            {inner_limit_clause}
-        ) sub
-        ORDER BY {order_by_sql}
-        {outer_limit_clause}
-    """)
-    
+            ORDER BY created_at DESC
+            {limit_clause}
+        """)
+    print('WHERE CLAUSE: ', query)
     nested_tx = await session.begin_nested()
     try:
         result = await session.execute(query, params)
@@ -227,7 +231,7 @@ async def _simple_sum(
     date_from: Optional[datetime],
     date_to: Optional[datetime],
     limit: Optional[int],
-    timeMode: Optional[str] = Body(None),
+    timeMode: Optional[str] = None,
 ) -> List[Dict]:
     filters = ["room_id = :room_id"]
     params = {"room_id": room_id}
@@ -245,26 +249,18 @@ async def _simple_sum(
         
     where = " AND ".join(filters)
     
-    inner_limit = ""
-    outer_limit = ""
-    
-    if timeMode and limit:
-        inner_limit = "ORDER BY created_at DESC LIMIT :limit"
-        params["limit"] = limit
-    elif limit:
-        outer_limit = "LIMIT :limit"
+    # Исправляем обработку лимитов (включая лимит 0) во внешнем фоллбэке
+    limit_clause = ""
+    if limit is not None:
+        limit_clause = "LIMIT :limit"
         params["limit"] = limit
     
     query = text(f"""
         SELECT id, message, sender_id, receiver_id, created_at, 0.0 AS score
-        FROM (
-            SELECT id, message, sender_id, receiver_id, created_at
-            FROM messages
-            WHERE {where}
-            {inner_limit}
-        ) sub
+        FROM messages
+        WHERE {where}
         ORDER BY created_at DESC
-        {outer_limit}
+        {limit_clause}
     """)
     
     try:

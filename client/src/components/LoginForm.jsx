@@ -24,6 +24,8 @@ function LoginForm() {
 
       const userData = res.data;
 
+      console.log(userData);
+
       dispatch(
          addInfo({
             name: "",
@@ -41,47 +43,68 @@ function LoginForm() {
    }
 
    return (
-      <form className="max-w-md mx-auto bg-white rounded-md shadow-lg shadow-stone-300 p-8">
-         <h1 className="text-2xl font-bold text-gray-800 mb-8 text-left">
-            Login
-         </h1>
+      <form className="w-full max-w-md mx-auto bg-white rounded-xl border border-slate-300 p-8 shadow-[0_10px_25px_-5px_rgba(148,163,184,0.1)]">
+         <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-800">
+               Login
+            </h1>
+            <p className="text-xs text-slate-500 mt-1.5 uppercase tracking-wider font-semibold">
+               Enter your credentials
+            </p>
+         </div>
 
-         <Input
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-         />
+         <div className="space-y-4 mb-6">
+            <Input
+               placeholder="Email"
+               value={email}
+               onChange={(e) => setEmail(e.target.value)}
+            />
 
-         <Input
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            type="password"
-         />
+            <Input
+               placeholder="Password"
+               value={password}
+               onChange={(e) => setPassword(e.target.value)}
+               type="password"
+            />
+         </div>
 
          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-3 bg-rose-50 border border-rose-300 text-rose-700 text-sm rounded-lg">
                {error}
             </div>
          )}
 
-         <Button
-            onClick={(e) => {
-               e.preventDefault();
-               setError(null);
-               loginUser(email, password);
-            }}
-         >
-            Log in
-         </Button>
+         <div className="space-y-4">
+            <Button
+               onClick={(e) => {
+                  e.preventDefault();
+                  setError(null);
+                  loginUser(email, password);
+               }}
+            >
+               Log in
+            </Button>
 
-         <button
-            onClick={getGoogleUri}
-            className="flex items-center justify-center w-full px-4 py-3 mt-6 text-gray-700 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-stone-50"
-         >
-            <img src={logo} alt="Google" className="w-5 h-5 mr-3" />
-            Login with Google
-         </button>
+            <div className="relative flex py-1 items-center text-xs text-slate-300 uppercase select-none">
+               <div className="flex-grow border-t border-slate-300"></div>
+               <span className="flex-shrink mx-3 text-slate-500 font-semibold">
+                  or
+               </span>
+               <div className="flex-grow border-t border-slate-300"></div>
+            </div>
+
+            <button
+               onClick={getGoogleUri}
+               className="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors duration-150"
+            >
+               <img
+                  src={logo}
+                  alt="Google"
+                  className="w-4 h-4 mr-2.5 select-none"
+               />
+               Login with Google
+            </button>
+         </div>
       </form>
    );
 }

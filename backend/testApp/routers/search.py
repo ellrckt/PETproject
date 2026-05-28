@@ -120,7 +120,7 @@ async def smart_sum_with_ai(
     room_id: str,
     timeMode: Optional[str] = Body(None),
     sumMode : Optional[str] = Body(None),
-    query: Optional[str] = Body(..., min_length=1),
+    query: Optional[str] = Body(None),
     date_from: Optional[datetime] = Body(None),
     date_to: Optional[datetime] = Body(None),
     limit: Optional[int] = Body(20, le=50),
@@ -156,7 +156,7 @@ async def smart_sum_with_ai(
     ai_filtered_json = await ai_filter_svc.select_for_summ(
         user_query=query,
         chat_messages=raw_db_results or [],
-        sumMode=sumMode
+        sumMode=sumMode,
     )
 
     return ai_filtered_json

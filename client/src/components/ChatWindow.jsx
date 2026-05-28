@@ -129,27 +129,27 @@ function ChatWindow({ receiverId, receiverName }) {
    };
 
    return (
-      <div className="flex flex-col h-full">
-         <div className="p-4 border-b border-stone-200 flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-stone-800 truncate">
+      <div className="flex flex-col h-full bg-sky-50 w-full">
+         <div className="p-4 bg-white border-b border-slate-300 flex items-center justify-between gap-4 h-16 shrink-0">
+            <h2 className="text-base font-bold tracking-tight text-slate-800 truncate">
                {receiverId ? `Chat with ${receiverName}` : "Messages"}
             </h2>
             {/* <SearchButton /> */}
          </div>
 
          <div
-            className={`px-4 py-2 text-sm ${
+            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b border-slate-300 select-none shrink-0 ${
                isConnected
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                  : "bg-rose-50 border-rose-200 text-rose-800"
             }`}
          >
             {isConnected ? `Connected to ${receiverName}` : "Disconnected"}
          </div>
 
-         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
             {messages.length === 0 ? (
-               <div className="text-center text-gray-500 py-8">
+               <div className="text-center text-slate-400 font-medium py-8 text-sm">
                   No messages yet. Start the conversation!
                </div>
             ) : (
@@ -163,42 +163,39 @@ function ChatWindow({ receiverId, receiverName }) {
                      }`}
                   >
                      <div
-                        className={`max-w-xs lg:max-w-md rounded-lg px-4 py-2 ${
+                        className={`max-w-xs lg:max-w-md rounded-xl p-3 border ${
                            msg.sender_id === receiverId
-                              ? "bg-gray-100 text-gray-800"
-                              : "bg-blue-500 text-white"
+                              ? "bg-white border-slate-300 text-slate-800"
+                              : "bg-slate-800 border-slate-900 text-white"
                         }`}
                      >
-                        <div className="font-medium mb-1">
+                        <div
+                           className={`text-xs font-bold mb-1 uppercase tracking-wide ${
+                              msg.sender_id === receiverId
+                                 ? "text-slate-500"
+                                 : "text-slate-300"
+                           }`}
+                        >
                            {msg.sender_id === receiverId ? receiverName : "You"}
                         </div>
-                        <div className="mb-1">{msg.message}</div>
-                        <div className="flex justify-between items-center">
-                           <div className="text-xs opacity-70">
+                        <div className="text-sm leading-relaxed font-medium break-words mb-1.5">
+                           {msg.message}
+                        </div>
+                        <div className="flex justify-between items-center gap-4">
+                           <div
+                              className={`text-[10px] font-bold uppercase tracking-wide ${
+                                 msg.sender_id === receiverId
+                                    ? "text-slate-400"
+                                    : "text-slate-400"
+                              }`}
+                           >
                               {formatDate(msg.date)}
                               {msg.is_viewed === false && (
-                                 <span className="ml-2">• Unread</span>
+                                 <span className="ml-2 text-amber-600 font-extrabold">
+                                    • Unread
+                                 </span>
                               )}
                            </div>
-                           {/* {!msg.is_translated &&
-                              msg.sender_id === receiverId && (
-                                 <button
-                                    onClick={() =>
-                                       translateMessage(
-                                          msg.message_id.toString(),
-                                          msg.message,
-                                       )
-                                    }
-                                    disabled={translatingIds.has(
-                                       msg.message_id,
-                                    )}
-                                    className="ml-2 text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                 >
-                                    {translatingIds.has(msg.message_id)
-                                       ? "Translating..."
-                                       : "Translate"}
-                                 </button>
-                              )} */}
                         </div>
                      </div>
                   </div>
@@ -207,22 +204,28 @@ function ChatWindow({ receiverId, receiverName }) {
             <div ref={messagesEndRef} />
          </div>
 
-         <div className="border-t p-2 bg-white">
-            <div className="flex items-center gap-4 w-full">
-               <Input
-                  placeholder="Type message here..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1 w-full"
-               />
-               <Button
-                  onClick={sendMessage}
-                  disabled={!message.trim() || !isConnected}
-                  className="whitespace-nowrap"
-               >
-                  <Send h-4 w-4 />
-               </Button>
+         <div className="border-t border-slate-300 p-3 bg-white shrink-0">
+            <div className="flex items-center gap-3 w-full max-w-none">
+               <div className="flex-1">
+                  <Input
+                     placeholder="Type message here..."
+                     value={message}
+                     onChange={(e) => setMessage(e.target.value)}
+                     onKeyPress={handleKeyPress}
+                  />
+               </div>
+
+               <div className="w-12 flex-shrink-0">
+                  <Button
+                     onClick={sendMessage}
+                     disabled={!message.trim() || !isConnected}
+                  >
+                     <div className="flex items-center justify-center w-full">
+                        <Send className="h-4 w-4" />
+                     </div>
+                  </Button>
+               </div>
+
                <Summarization></Summarization>
             </div>
          </div>

@@ -16,5 +16,7 @@ const profileSlice = createSlice({
    },
 });
 
+export const getProfileInfo = (state) => state.profile;
+
 export const { addInfo } = profileSlice.actions;
 export default profileSlice.reducer;

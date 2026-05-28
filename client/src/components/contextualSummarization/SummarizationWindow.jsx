@@ -2,42 +2,61 @@ import { useSelector } from "react-redux";
 import { useState } from "react";
 import Button from "../UI/Button";
 import Input from "../UI/Input";
-import {
-   X,
-   CheckSquare,
-   Calendar,
-   Lightbulb,
-   HelpCircle,
-   Sparkles,
-} from "lucide-react";
+import { X, CheckSquare, Calendar, HelpCircle, Sparkles } from "lucide-react";
 import { getActiveChat } from "../../store/chats/chatsSlice";
 import reqService from "../../API/RequestService";
 
 function SummarizeWindow({ handleWindowClosing }) {
    const activeChat = useSelector(getActiveChat);
 
-   const [timeMode, setTimeMode] = useState("unread");
-   const [summaryType, setSummaryType] = useState("tasks");
-   const [customQuery, setCustomQuery] = useState("");
-   const [dateRange, setDateRange] = useState({ from: "", to: "" });
    const [summaryResult, setSummaryResult] = useState(null);
    const [isLoading, setIsLoading] = useState(false);
+   const [sumData, setSumData] = useState({
+      query: null,
+      timeMode: "unread",
+      limit: null,
+      date_from: null,
+      date_to: null,
+      sumMode: "tasks",
+   });
 
-   const handleDateChange = (e) => {
-      const { name, value } = e.target;
-      setDateRange((prev) => ({ ...prev, [name]: value }));
+   const handleSumDataChange = (event) => {
+      const { name, value } = event.target;
+
+      setSumData((prev) => ({
+         ...prev,
+         [name]: value,
+      }));
    };
 
    const handleGenerateSummary = async () => {
       setIsLoading(true);
 
+      const payload = {
+         ...sumData,
+         timeMode: sumData.timeMode === "range" ? null : "unread",
+         limit:
+            sumData.timeMode === "unread"
+               ? activeChat.unread_messages_count || 0
+               : null,
+         date_from: sumData.timeMode === "unread" ? null : sumData.date_from,
+         date_to: sumData.timeMode === "unread" ? null : sumData.date_to,
+      };
+
       try {
-         const response = await reqService.post();
-         setSummaryResult(response.data.data);
+         const response = await reqService.post(
+            `/search/${activeChat.room_id}/smart-sum`,
+            payload,
+         );
+
+         //const cleanText = JSON.parse(response.data).summary;
+
+         setSummaryResult(response.data.summary);
       } catch (error) {
          console.error(error);
       } finally {
          setIsLoading(false);
+         console.log(summaryResult);
       }
    };
 
@@ -69,26 +88,28 @@ function SummarizeWindow({ handleWindowClosing }) {
 
                <div className="grid grid-cols-2 gap-3">
                   <label
-                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer select-none text-sm font-medium transition-all ${timeMode === "unread" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 hover:bg-stone-50 text-stone-700"}`}
+                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer select-none text-sm font-medium transition-all ${sumData.timeMode === "unread" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 hover:bg-stone-50 text-stone-700"}`}
                   >
                      <input
                         type="radio"
                         name="timeMode"
-                        checked={timeMode === "unread"}
-                        onChange={() => setTimeMode("unread")}
+                        value="unread"
+                        checked={sumData.timeMode === "unread"}
+                        onChange={handleSumDataChange}
                         className="w-4 h-4 text-stone-800 accent-stone-800 focus:ring-stone-500"
                      />
                      <span>Unread messages</span>
                   </label>
 
                   <label
-                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer select-none text-sm font-medium transition-all ${timeMode === "range" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 hover:bg-stone-50 text-stone-700"}`}
+                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer select-none text-sm font-medium transition-all ${sumData.timeMode === "range" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 hover:bg-stone-50 text-stone-700"}`}
                   >
                      <input
                         type="radio"
                         name="timeMode"
-                        checked={timeMode === "range"}
-                        onChange={() => setTimeMode("range")}
+                        value={"range"}
+                        checked={sumData.timeMode === "range"}
+                        onChange={handleSumDataChange}
                         className="w-4 h-4 text-stone-800 accent-stone-800 focus:ring-stone-500"
                      />
                      <span>Select date range</span>
@@ -96,23 +117,23 @@ function SummarizeWindow({ handleWindowClosing }) {
                </div>
 
                <div
-                  className={`flex items-center gap-2 transition-opacity duration-200 ${timeMode === "unread" ? "opacity-40 pointer-events-none" : "opacity-100"}`}
+                  className={`flex items-center gap-2 transition-opacity duration-200 ${sumData.timeMode === "unread" ? "opacity-40 pointer-events-none" : "opacity-100"}`}
                >
                   <input
                      type="date"
-                     name="from"
-                     disabled={timeMode === "unread"}
-                     value={dateRange.from}
-                     onChange={handleDateChange}
+                     name="date_from"
+                     disabled={sumData.timeMode === "unread"}
+                     value={sumData.date_from}
+                     onChange={handleSumDataChange}
                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-stone-800 bg-white text-sm"
                   />
                   <span className="text-stone-400 text-sm">to</span>
                   <input
                      type="date"
-                     name="to"
-                     disabled={timeMode === "unread"}
-                     value={dateRange.to}
-                     onChange={handleDateChange}
+                     name="date_to"
+                     disabled={sumData.timeMode === "unread"}
+                     value={sumData.date_to}
+                     onChange={handleSumDataChange}
                      className="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-400 focus:border-stone-400 text-stone-800 bg-white text-sm"
                   />
                </div>
@@ -125,36 +146,46 @@ function SummarizeWindow({ handleWindowClosing }) {
 
                <div className="grid grid-cols-2 gap-2.5">
                   <button
-                     onClick={() => setSummaryType("tasks")}
-                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${summaryType === "tasks" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
+                     type="button"
+                     onClick={() =>
+                        setSumData((prev) => ({ ...prev, sumMode: "tasks" }))
+                     }
+                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${sumData.sumMode === "tasks" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
                   >
                      <CheckSquare className="w-4 h-4 text-stone-600" />
-                     <span>Tasks & Actions</span>
+                     <span>Tasks</span>
                   </button>
 
                   <button
-                     onClick={() => setSummaryType("meetings")}
-                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${summaryType === "meetings" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
+                     type="button"
+                     onClick={() =>
+                        setSumData((prev) => ({ ...prev, sumMode: "plans" }))
+                     }
+                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${sumData.sumMode === "plans" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
                   >
                      <Calendar className="w-4 h-4 text-stone-600" />
                      <span>Meetings & Plans</span>
                   </button>
 
                   <button
-                     onClick={() => setSummaryType("custom")}
-                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${summaryType === "custom" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
+                     type="button"
+                     onClick={() =>
+                        setSumData((prev) => ({ ...prev, sumMode: "custom" }))
+                     }
+                     className={`flex items-center gap-3 p-3 rounded-lg border text-left text-sm font-medium transition-all ${sumData.sumMode === "custom" ? "border-stone-800 bg-stone-50 text-stone-800 font-semibold" : "border-stone-300 text-stone-700 hover:bg-stone-50"}`}
                   >
                      <HelpCircle className="w-4 h-4 text-stone-600" />
                      <span>Custom Question</span>
                   </button>
                </div>
 
-               {summaryType === "custom" && (
+               {sumData.sumMode === "custom" && (
                   <div className="mt-1">
                      <Input
+                        name="query"
                         placeholder="Your query..."
-                        value={customQuery}
-                        onChange={(e) => setCustomQuery(e.target.value)}
+                        value={sumData.query}
+                        onChange={handleSumDataChange}
                      />
                   </div>
                )}
@@ -163,20 +194,20 @@ function SummarizeWindow({ handleWindowClosing }) {
             <Button
                onClick={handleGenerateSummary}
                disabled={
-                  isLoading || (summaryType === "custom" && !customQuery.trim())
+                  isLoading ||
+                  (sumData.sumMode === "custom" && !sumData.query?.trim())
                }
             >
                {isLoading ? "Generating summary..." : "Generate Summary"}
             </Button>
 
-            {summaryResult || !isLoading ? (
+            {summaryResult && !isLoading ? (
                <div className="flex flex-col gap-2">
                   <h3 className="text-lg font-bold text-stone-600 pr-6">
                      Summary:
                   </h3>
                   <div className="w-full rounded-lg px-4 py-3 bg-stone-100 text-stone-800 text-sm whitespace-pre-line leading-relaxed border border-stone-200">
-                     {summaryResult ||
-                        `• Исправить баг с типами в файле auth/utils.py (из-за него бэкенд падал).\n• Добавить новые миграции Alembic в базу данных.\n• Настроить отправку параметров из формы поиска через тело JSON, а не через URL-строку.`}
+                     {summaryResult}
                   </div>
                </div>
             ) : null}

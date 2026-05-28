@@ -1,17 +1,14 @@
-import React from "react";
 import Ref from "./UI/Ref";
-import logo from "../assets/images/logo.svg";
 
 function NavBar() {
    return (
-      <div className="flex items-center justify-between px-7 py-2 bg-white shadow-sm h-14">
-         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-10">
-            <Ref path="/" text="Home"></Ref>
+      <div className="w-full flex items-center justify-between px-6 bg-sky-50 border-b border-sky-100 h-16">
+         <nav className="flex items-center h-full space-x-1">
+            <Ref path="/" text="Chats"></Ref>
             <Ref path="/profile" text="Profile"></Ref>
-         </div>
+         </nav>
       </div>
    );
 }
 
 export default NavBar;
-

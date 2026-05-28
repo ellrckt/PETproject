@@ -1,18 +1,15 @@
 function Input({ placeholder, value, onChange, type, name }) {
    return (
-      <div className="mb-4">
-         <div className="relative">
-            <input
-               className="w-full px-3 py-2 border-b-2 border-gray-300 rounded-none text-gray-700 focus:outline-none focus:border-stone-500 focus:ring-0 transition-colors duration-200 bg-transparent"
-               id={placeholder}
-               type={type || "text"}
-               placeholder={placeholder}
-               value={value}
-               onChange={onChange}
-               name={name || "name"}
-            />
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-stone-500 transform scale-x-0 origin-left transition-transform duration-200 focus-within:scale-x-100"></div>
-         </div>
+      <div className="w-full">
+         <input
+            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500/30 transition-all duration-150"
+            id={placeholder}
+            type={type || "text"}
+            placeholder={placeholder}
+            value={value || ""}
+            onChange={onChange}
+            name={name || "name"}
+         />
       </div>
    );
 }

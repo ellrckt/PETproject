@@ -19,12 +19,14 @@ function ChatsList({ userChatsArray, onChatSelect }) {
    };
 
    return (
-      <aside className="w-60 bg-stone-50 border-r border-stone-200 flex flex-col h-full">
-         <div className="p-4 border-b border-stone-200 flex-shrink-0">
-            <h2 className="text-xl font-bold text-stone-800">Your Chats</h2>
+      <aside className="w-full h-full bg-white flex flex-col">
+         <div className="p-4 border-b border-slate-300 flex-shrink-0 flex items-center h-16">
+            <h2 className="text-base font-bold tracking-tight text-slate-800">
+               Your Chats
+            </h2>
          </div>
 
-         <div className="flex-1 overflow-y-auto">
+         <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
             {chatsList && chatsList.length ? (
                chatsList.map((chat, index) => (
                   <ChatsListItem
@@ -42,22 +44,26 @@ function ChatsList({ userChatsArray, onChatSelect }) {
                   />
                ))
             ) : (
-               <div className="h-full flex flex-col items-center justify-center text-center p-8 text-stone-600">
-                  <svg
-                     className="w-16 h-16 mb-4 text-stone-300"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24"
-                  >
-                     <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                     />
-                  </svg>
-                  <p className="text-lg font-medium mb-2">No chats yet</p>
-                  <p className="text-sm mb-6">
+               <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50">
+                  <div className="w-12 h-12 bg-white border border-slate-300 rounded-xl flex items-center justify-center mb-4 shadow-sm">
+                     <svg
+                        className="w-6 h-6 text-slate-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                     >
+                        <path
+                           strokeLinecap="round"
+                           strokeLinejoin="round"
+                           strokeWidth={1.5}
+                           d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                     </svg>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800 mb-1">
+                     No chats yet
+                  </p>
+                  <p className="text-xs text-slate-500 font-medium max-w-[180px] mx-auto leading-relaxed">
                      Start a conversation to see chats here
                   </p>
                </div>

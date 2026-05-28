@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import reqService from "../API/RequestService";
+import { useDispatch } from "react-redux";
+import { addInfo } from "./../store/profile/profileSlice";
 
 export default function useGoogleAuth() {
    const nav = useNavigate();
+   const dispatch = useDispatch();
 
    const [loading, setLoading] = useState(true);
    const [isRefreshTokenAlive, setIsRefreshTokenAlive] = useState(false);
@@ -24,8 +27,21 @@ export default function useGoogleAuth() {
       }
 
       async function getData() {
-         await reqService.post("/login/get_google_token", code);
+         const response = await reqService.post(
+            "/login/get_google_token",
+            code,
+         );
+
+         dispatch(
+            addInfo({
+               name: "",
+               photo: "",
+               id: response.data.id,
+            }),
+         );
+
          nav("/");
+
          checkRefreshToken();
       }
 
